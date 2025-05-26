@@ -1,0 +1,8 @@
+# Always use LF for text files, no matter the OS
+* text=auto
+
+# Ensure specific file types use LF
+*.js     text eol=lf
+*.css    text eol=lf
+*.html   text eol=lf
+*.php    text eol=lf
