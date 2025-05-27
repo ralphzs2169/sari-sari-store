@@ -5,6 +5,7 @@ $(document).ready(function() {
             pageLength: 5
         });
     });
+    
 
 // Set current date
 document.addEventListener('DOMContentLoaded', function() {
@@ -35,7 +36,6 @@ function navigateToSection(sectionId) {
 
     document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
 }
-
 
 document.querySelectorAll('.sidebar-nav a').forEach(link => {
     link.addEventListener('click', function (e) {

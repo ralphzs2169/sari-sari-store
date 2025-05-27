@@ -19,6 +19,7 @@ switch ($action) {
         $selling_price = floatval($_POST['selling_price'] ?? 0);
         $quantity_in_stock = intval($_POST['quantity_in_stock'] ?? 0);
 
+        error_log("ADMIN ID ===== " .  $_SESSION['admin_id']);
         // Basic validation
         if (empty($name)) {
             $_SESSION['product_error'] = "Product name is required.";
@@ -28,7 +29,7 @@ switch ($action) {
             $_SESSION['product_error'] = "Please select a valid unit.";
         } else {
             // Call create method on ProductModel
-            $product->create($name, $category_id, $unit_id, $cost_price, $selling_price, $quantity_in_stock);
+            $product->create($name, $category_id, $unit_id, $cost_price, $selling_price, $quantity_in_stock, $_SESSION['admin_username']);
             $_SESSION['success'] = "Product added successfully.";
         }
 
@@ -46,7 +47,7 @@ switch ($action) {
         $quantity_in_stock = intval($_POST['quantity_in_stock'] ?? 0);
 
         if ($id && !empty($name) && $category_id > 0 && $unit_id > 0) {
-            $product->update($id, $name, $category_id, $unit_id, $cost_price, $selling_price, $quantity_in_stock);
+            $product->update($id, $name, $category_id, $unit_id, $cost_price, $selling_price, $quantity_in_stock, $_SESSION['admin_username']);
             $_SESSION['success'] = "Product updated successfully.";
         } else {
             $_SESSION['product_error'] = "Please fill all required fields correctly.";
@@ -58,8 +59,10 @@ switch ($action) {
 
     case 'delete':
         $id = intval($_GET['id'] ?? 0);
+        $product_name = trim($_GET['name'] ?? '');
+
         if ($id > 0) {
-            $product->delete($id);
+            $product->delete($id,  $product_name, $_SESSION['admin_id']);
             $_SESSION['success'] = "Product deleted.";
         }
         $currentSection = $_GET['current_section'] ?? 'products';

@@ -179,6 +179,7 @@ body {
     padding: 25px;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
 }
+
 #categoryTable thead th:nth-child(4) {
     text-align: left;    
 }
@@ -191,6 +192,26 @@ body {
     border-top: none;
     font-weight: 600;
     color: #555;
+}
+
+#activityTable {
+    border-collapse: separate !important;
+    border-spacing: 0 10px;
+}
+
+#activityTable tbody tr {
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+#activityTable tbody tr td {
+    vertical-align: middle;
+    padding: 15px 10px;
+}
+
+.activity-time {
+    font-size: 0.85rem;
+    color: #6c757d;
 }
 
 .btn-action {

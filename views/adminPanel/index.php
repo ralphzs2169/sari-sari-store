@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../models/categoryModel.php';
 require_once __DIR__ . '/../../models/unitModel.php';
 require_once __DIR__ . '/../../models/productModel.php';
+require_once __DIR__ . '/../../models/activityLogModel.php';
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -13,6 +14,9 @@ $categories = $categoryModel->getAll();
 
 $unitModel = new UnitModel($conn);
 $units = $unitModel->getAll();
+
+$activityLogModel = new ActivityLogModel($conn);
+$activityLogs = $activityLogModel->getAll();
 
 $productModel = new ProductModel($conn);
 $products = $productModel->getAll();
@@ -166,6 +170,17 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
     <script src="/sari-sari-store/assets/sweetalert2/dist/sweetalert2.all.min.js"></script>
     <script src="/sari-sari-store/assets/js/productManagment.js"></script>
     <script>
+        $(document).ready(function() {
+            $('#activityTable').DataTable({
+                paging: true,
+                searching: true,
+                info: false,
+                lengthChange: false,
+                pageLength: 5,
+                ordering: false
+            });
+        });
+
         $(document).ready(function() {
             // If the URL has ?section=..., update localStorage
             const urlSection = new URLSearchParams(window.location.search).get('section');

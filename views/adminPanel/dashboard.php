@@ -58,7 +58,7 @@
         <div class="col-lg-4 mb-4">
             <div class="quick-actions">
                 <h5 class="mb-3"><i class="fas fa-bolt text-warning"></i> Quick Actions</h5>
-                <a href="#" class="action-btn" onclick="showAddProductModal()">
+                <a href="#" class="action-btn" onclick="navigateToSection('products')">
                     <i class="fas fa-plus-circle"></i> Add New Product
                 </a>
                 <a href="#" class="action-btn" onclick="navigateToSection('sales')">
@@ -72,48 +72,128 @@
                 </a>
             </div>
         </div>
+        <style>
+            #activityTable {
+                border-collapse: collapse !important;
+                /* change from separate to collapse */
+                border-spacing: 0;
+                /* remove spacing */
+            }
 
+            #activityTable tbody tr {
+                background: #ffffff;
+                /* white background */
+                border-radius: 0;
+                /* no rounding */
+                /* optionally add a subtle border between rows */
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            #activityTable tbody tr:last-child {
+                border-bottom: none;
+                /* no border on last row */
+            }
+
+            #activityTable tbody tr td {
+                vertical-align: middle;
+                padding: 8px 10px;
+                /* reduce vertical padding to 8px, keep horizontal padding 10px */
+            }
+
+            .activity-time {
+                font-size: 0.85rem;
+                color: #6c757d;
+            }
+
+            #activityTable>thead {
+                display: none;
+            }
+        </style>
         <!-- Recent Activity -->
         <div class="col-lg-8 mb-4">
             <div class="recent-activity">
                 <h5 class="mb-3"><i class="fas fa-clock text-info"></i> Recent Activity</h5>
-                <div class="activity-item">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <strong>New sale transaction completed</strong>
-                            <br><small class="text-muted">Customer purchased Coca-Cola, Lucky Me, and Pan de Sal</small>
-                        </div>
-                        <span class="activity-time">2 min ago</span>
-                    </div>
-                </div>
-                <div class="activity-item">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <strong>Low stock alert</strong>
-                            <br><small class="text-muted">Maggi Noodles - Only 5 pieces remaining</small>
-                        </div>
-                        <span class="activity-time">15 min ago</span>
-                    </div>
-                </div>
-                <div class="activity-item">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <strong>New product added</strong>
-                            <br><small class="text-muted">Kopiko Coffee - 50 pieces added to inventory</small>
-                        </div>
-                        <span class="activity-time">1 hr ago</span>
-                    </div>
-                </div>
-                <div class="activity-item">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <strong>Daily sales report generated</strong>
-                            <br><small class="text-muted">Yesterday's total: ₱18,250</small>
-                        </div>
-                        <span class="activity-time">3 hrs ago</span>
-                    </div>
-                </div>
+                <table id="activityTable" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Activity</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        function timeAgo($datetime, $full = false)
+                        {
+                            // Philippine timezone
+                            $timezone = new DateTimeZone('Asia/Manila');
+
+                            $now = new DateTime('now', $timezone);
+                            $ago = new DateTime($datetime, $timezone);
+
+                            $diff = $now->diff($ago);
+
+                            $weeks = floor($diff->d / 7);
+                            $days = $diff->d % 7;
+
+                            $string = [
+                                'y' => $diff->y,
+                                'm' => $diff->m,
+                                'w' => $weeks,
+                                'd' => $days,
+                                'h' => $diff->h,
+                                'i' => $diff->i,
+                                's' => $diff->s,
+                            ];
+
+                            $units = [
+                                'y' => 'year',
+                                'm' => 'month',
+                                'w' => 'week',
+                                'd' => 'day',
+                                'h' => 'hour',
+                                'i' => 'minute',
+                                's' => 'second',
+                            ];
+
+                            foreach ($string as $k => $v) {
+                                if ($v) {
+                                    $string[$k] = $v . ' ' . $units[$k] . ($v > 1 ? 's' : '');
+                                } else {
+                                    unset($string[$k]);
+                                }
+                            }
+
+                            if (!$full) $string = array_slice($string, 0, 1); // only biggest unit
+
+                            return $string ? implode(', ', $string) . ' ago' : 'just now';
+                        }
+
+
+                        ?>
+
+                        <!-- inside your foreach loop -->
+                        <?php
+                        foreach ($activityLogs as $log) {
+                            // Use the timeAgo function here:
+                            $createdAtAgo = timeAgo($log['created_at']);
+
+                            $activityTitle = ucwords(str_replace('_', ' ', $log['activity_type']));
+                            $description = htmlspecialchars($log['description']);
+                            $createdAtEscaped = htmlspecialchars($createdAtAgo);
+
+                            echo "<tr>";
+                            echo "<td><strong>{$activityTitle}</strong><br><small class='text-muted'>{$description}</small></td>";
+                            echo "<td><span class='activity-time'>{$createdAtEscaped}</span></td>";
+                            echo "</tr>";
+                        }
+                        ?>
+
+                    </tbody>
+                </table>
+
+
             </div>
         </div>
+
     </div>
 </div>

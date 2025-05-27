@@ -69,7 +69,7 @@
                                         </button>
                                         <button
                                             class="btn btn-sm btn-outline-danger btn-action"
-                                            onclick="confirmDelete('/sari-sari-store/controllers/ProductController.php?action=delete&id=<?= $product['product_id'] ?>', 'Product')">
+                                            onclick="confirmDelete('/sari-sari-store/controllers/ProductController.php?action=delete&id=<?= $product['product_id'] ?>&name=<?= $product['name'] ?>', 'Product')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
