@@ -27,6 +27,14 @@ class ProductModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function GetProductCounts()
+    {
+        $stmt = $this->conn->prepare("CALL GetProductCounts()");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
     public function getById($product_id)
     {
         $stmt = $this->conn->prepare("CALL GetProductById(:product_id)");

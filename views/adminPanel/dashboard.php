@@ -20,7 +20,7 @@
                 <div class="stats-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
                     <i class="fas fa-box"></i>
                 </div>
-                <h3 class="stats-number text-primary">248</h3>
+                <h3 class="stats-number text-primary"><?= htmlspecialchars($totalProductCount) ?></h3>
                 <p class="stats-label">Total Products</p>
             </div>
         </div>
@@ -47,7 +47,7 @@
                 <div class="stats-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                <h3 class="stats-number text-danger">12</h3>
+                <h3 class="stats-number text-danger"><?= htmlspecialchars($totalLowStockCount) ?></h3>
                 <p class="stats-label">Low Stock Items</p>
             </div>
         </div>
