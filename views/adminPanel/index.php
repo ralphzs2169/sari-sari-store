@@ -159,7 +159,7 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
     <script src="/sari-sari-store/assets/datatables/js/datatables.js"></script>
     <script src="/sari-sari-store/assets/datatables/js/datatables.min.js"></script>
 
-    <script src="/sari-sari-store/node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+    <script src="/sari-sari-store/assets/sweetalert2/dist/sweetalert2.all.min.js"></script>
     <script src="/sari-sari-store/assets/js/productManagment.js"></script>
     <script>
         $(document).ready(function() {
