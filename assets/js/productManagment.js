@@ -1,97 +1,5 @@
-// Global variables to store data
-let products = [{
-        id: 1,
-        name: 'Coca-Cola 330ml',
-        category: 'Beverages',
-        unit: 'Piece',
-        price: 25.00,
-        stock: 45,
-        lowStock: 10
-    },
-    {
-        id: 2,
-        name: 'Lucky Me Beef',
-        category: 'Instant Noodles',
-        unit: 'Piece',
-        price: 15.50,
-        stock: 120,
-        lowStock: 15
-    },
-    {
-        id: 3,
-        name: 'Pan de Sal',
-        category: 'Bread',
-        unit: 'Piece',
-        price: 3.50,
-        stock: 200,
-        lowStock: 20
-    },
-    {
-        id: 4,
-        name: 'Maggi Noodles',
-        category: 'Instant Noodles',
-        unit: 'Piece',
-        price: 12.00,
-        stock: 5,
-        lowStock: 10
-    },
-    {
-        id: 5,
-        name: 'Kopiko Coffee',
-        category: 'Beverages',
-        unit: 'Pack',
-        price: 8.00,
-        stock: 75,
-        lowStock: 10
-    }
-];
-
-let categories = [{
-        id: 1,
-        name: 'Beverages',
-        description: 'Soft drinks, coffee, juice',
-        productCount: 15
-    },
-    {
-        id: 2,
-        name: 'Instant Noodles',
-        description: 'Cup noodles, packet noodles',
-        productCount: 25
-    },
-    {
-        id: 3,
-        name: 'Bread',
-        description: 'Pan de sal, loaf bread',
-        productCount: 8
-    }
-];
-
-let units = [{
-        id: 1,
-        name: 'Piece',
-        abbreviation: 'pcs',
-        description: 'Individual items'
-    },
-    {
-        id: 2,
-        name: 'Pack',
-        abbreviation: 'pack',
-        description: 'Packaged items'
-    },
-    {
-        id: 3,
-        name: 'Kilogram',
-        abbreviation: 'kg',
-        description: 'Weight measurement'
-    }
-];
-
-let nextProductId = 6;
-let nextCategoryId = 4;
-let nextUnitId = 4;
-
 $(document).ready(function() {
-        $('#categoryTable').DataTable({
+        $('#categoryTable, #unitTable, #productTable').DataTable({
             paging: true,
             searching: true,
             pageLength: 5
@@ -186,33 +94,7 @@ function showAddProductModal() {
     }, 300);
 }
 
-function addProduct() {
-    const form = document.getElementById('addProductForm');
-    if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return;
-    }
 
-    const newProduct = {
-        id: nextProductId++,
-        name: document.getElementById('productName').value,
-        category: document.getElementById('productCategory').value,
-        unit: document.getElementById('productUnit').value,
-        price: parseFloat(document.getElementById('productPrice').value),
-        stock: parseInt(document.getElementById('productStock').value),
-        lowStock: parseInt(document.getElementById('productLowStock').value)
-    };
-
-    products.push(newProduct);
-    refreshProductsTable();
-
-    // Reset form and close modal
-    form.reset();
-    form.classList.remove('was-validated');
-    bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
-
-    showAlert('Product added successfully!', 'success');
-}
 
 function editProduct(id) {
     const product = products.find(p => p.id === id);
@@ -257,13 +139,6 @@ function updateProduct() {
     }
 }
 
-function deleteProduct(id) {
-    if (confirm('Are you sure you want to delete this product?')) {
-        products = products.filter(p => p.id !== id);
-        refreshProductsTable();
-        showAlert('Product deleted successfully!', 'success');
-    }
-}
 
 function refreshProductsTable() {
     const tbody = document.getElementById('productsTableBody');
@@ -297,43 +172,7 @@ function refreshProductsTable() {
     });
 }
 
-// Category management functions
-function addCategory() {
-    const form = document.getElementById('addCategoryForm');
-    if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return;
-    }
 
-    const newCategory = {
-        id: nextCategoryId++,
-        name: document.getElementById('categoryName').value,
-        description: document.getElementById('categoryDescription').value,
-        productCount: 0
-    };
-
-    categories.push(newCategory);
-    refreshCategoriesTable();
-
-    // Reset form and close modal
-    form.reset();
-    form.classList.remove('was-validated');
-    bootstrap.Modal.getInstance(document.getElementById('addCategoryModal')).hide();
-
-    showAlert('Category added successfully!', 'success');
-}
-
-function editCategory(id) {
-    showAlert('Edit category functionality will be implemented soon!', 'info');
-}
-
-function deleteCategory(id) {
-    if (confirm('Are you sure you want to delete this category?')) {
-        categories = categories.filter(c => c.id !== id);
-        refreshCategoriesTable();
-        showAlert('Category deleted successfully!', 'success');
-    }
-}
 
 function refreshCategoriesTable() {
     const tbody = document.getElementById('categoriesTableBody');
@@ -360,36 +199,20 @@ function refreshCategoriesTable() {
     });
 }
 
-// Unit management functions
-function addUnit() {
-    const form = document.getElementById('addUnitForm');
-    if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return;
-    }
 
-    const newUnit = {
-        id: nextUnitId++,
-        name: document.getElementById('unitName').value,
-        abbreviation: document.getElementById('unitAbbreviation').value,
-        description: document.getElementById('unitDescription').value
-    };
+function editProduct(product) {
+    document.getElementById('editProductId').value = product.product_id;
+    document.getElementById('editProductName').value = product.name;
+    document.getElementById('editProductCategory').value = product.category_id;
+    document.getElementById('editProductUnit').value = product.unit_id;
+    document.getElementById('editProductCostPrice').value = product.cost_price;
+    document.getElementById('editProductSellingPrice').value = product.selling_price;
+    document.getElementById('editProductStock').value = product.quantity_in_stock;
 
-    units.push(newUnit);
-    refreshUnitsTable();
-
-    // Reset form and close modal
-    form.reset();
-    form.classList.remove('was-validated');
-    bootstrap.Modal.getInstance(document.getElementById('addUnitModal')).hide();
-
-    showAlert('Unit added successfully!', 'success');
+    let modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+    modal.show();
 }
 
-
-function editUnit(id) {
-    showAlert('Edit unit functionality will be implemented soon!', 'info');
-}
 
 function editCategory(category) {
     document.getElementById('editCategoryId').value = category.category_id;
@@ -399,6 +222,16 @@ function editCategory(category) {
     let modal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
     modal.show();
 }
+
+function editUnit(unit) {
+    document.getElementById('editUnitId').value = unit.unit_id;
+    document.getElementById('editUnitName').value = unit.name;
+    document.getElementById('editUnitAbbreviation').value = unit.abbreviation;
+
+    let modal = new bootstrap.Modal(document.getElementById('editUnitModal'));
+    modal.show();
+}
+
 
 function confirmDelete(deleteUrl, entityName) {
     Swal.fire({

@@ -1,7 +1,9 @@
 <?php
 
 require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../models/CategoryModel.php';
+require_once __DIR__ . '/../../models/categoryModel.php';
+require_once __DIR__ . '/../../models/unitModel.php';
+require_once __DIR__ . '/../../models/productModel.php';
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -9,11 +11,18 @@ $conn = $db->getConnection();
 $categoryModel = new CategoryModel($conn);
 $categories = $categoryModel->getAll();
 
+$unitModel = new UnitModel($conn);
+$units = $unitModel->getAll();
+
+$productModel = new ProductModel($conn);
+$products = $productModel->getAll();
+
 session_start();
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? $_SESSION['category_error'] ?? '';
 
 unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
+
 
 ?>
 
