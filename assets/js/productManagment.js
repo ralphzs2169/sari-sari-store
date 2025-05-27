@@ -120,6 +120,45 @@ function navigateToSection(sectionId) {
     document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
 }
 
+document.querySelectorAll('.sidebar-nav a').forEach(link => {
+    link.addEventListener('click', function (e) {
+        e.preventDefault();
+        const section = this.getAttribute('data-section');
+
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(sec => sec.style.display = 'none');
+
+        // Show selected section
+        const target = document.getElementById(section);
+        if (target) {
+            target.style.display = 'block';
+
+            // If entering the products section
+            if (section === 'products') {
+                // Wait a moment to ensure the section is visible
+                setTimeout(() => {
+                    // Deactivate all tabs and panes
+                    document.querySelectorAll('#productTabs .nav-link').forEach(tab => tab.classList.remove('active'));
+                    document.querySelectorAll('#productTabContent .tab-pane').forEach(pane => {
+                        pane.classList.remove('show', 'active');
+                    });
+
+                    // Activate the default products tab
+                    const defaultTab = document.querySelector('#productTabs .nav-link[data-bs-target="#products-pane"]');
+                    const defaultPane = document.querySelector('#products-pane');
+                    if (defaultTab && defaultPane) {
+                        defaultTab.classList.add('active');
+                        defaultPane.classList.add('show', 'active');
+                    }
+                }, 10); // Let the browser repaint first
+            }
+        }
+    });
+});
+
+
+
+
 // Handle sidebar navigation clicks
 document.querySelectorAll('[data-section]').forEach(link => {
     link.addEventListener('click', function(e) {

@@ -1,4 +1,4 @@
-<div id="dashboard" class="content-section active">
+<div id="dashboard" class="content-section">
     <!-- Welcome Section -->
     <div class="welcome-section">
         <div class="row align-items-center">

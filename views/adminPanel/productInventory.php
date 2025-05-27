@@ -1,26 +1,20 @@
-    <div id="products" class="content-section">
+    <div id="products" class="content-section" style="display:none;">
         <!-- Tabs for Products, Categories, and Units -->
-        <ul class="nav nav-tabs mb-4" id="productTabs" role="tablist">
+        <ul class="nav nav-tabs" id="productTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products-pane" type="button" role="tab">
-                    <i class="fas fa-box"></i> Products
-                </button>
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#products-pane">Products</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-pane" type="button" role="tab">
-                    <i class="fas fa-tags"></i> Categories
-                </button>
+                <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-pane" type="button" role="tab">Categories</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="units-tab" data-bs-toggle="tab" data-bs-target="#units-pane" type="button" role="tab">
-                    <i class="fas fa-ruler"></i> Units
-                </button>
+                <button class="nav-link" id="units-tab" data-bs-toggle="tab" data-bs-target="#units-pane" type="button" role="tab">Units</button>
             </li>
         </ul>
 
         <div class="tab-content" id="productTabContent">
             <!-- Products Tab -->
-            <div class="tab-pane fade show active" id="products-pane" role="tabpanel">
+            <div class="tab-pane fade show active" id="products-pane" role="tabpanel" aria-labelledby="products-tab">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4><i class="fas fa-box text-primary"></i> Product Inventory</h4>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
@@ -134,7 +128,7 @@
             </div>
 
             <!-- Categories Tab -->
-            <div class="tab-pane fade" id="categories-pane" role="tabpanel">
+            <div class="tab-pane fade" id="categories-pane" role="tabpanel" aria-labelledby="categories-tab">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4><i class="fas fa-tags text-primary"></i> Product Categories</h4>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
@@ -177,7 +171,7 @@
             </div>
 
             <!-- Units Tab -->
-            <div class="tab-pane fade" id="units-pane" role="tabpanel">
+            <div class="tab-pane fade" id="units-pane" role="tabpanel" aria-labelledby="units-tab">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4><i class="fas fa-ruler text-primary"></i> Units of Measurement</h4>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal">
@@ -318,6 +312,10 @@
                 <div class="modal-body">
                     <form action="/sari-sari-store/controllers/CategoryController.php?action=create" method="post" class="container mt-5">
                         <h2>Add Category</h2>
+
+                        <input type="hidden" name="current_section" id="current_section" value="">
+
+
 
                         <?php if (isset($_SESSION['category_error'])): ?>
                             <div class="alert alert-danger"><?php echo $_SESSION['category_error'];

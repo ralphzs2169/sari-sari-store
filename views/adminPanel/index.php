@@ -28,7 +28,13 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
     <link rel="stylesheet" href="/sari-sari-store/assets/css/styles.css">
     <link rel="stylesheet" href="/sari-sari-store/assets/css/popups.css">
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/sari-sari-store/assets/bootstrap/css/bootstrap.min.css">
+    <!-- JQuery CSS -->
+    <link rel="stylesheet" href="/sari-sari-store/assets/jquery/css/jquery-ui.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="/sari-sari-store/assets/datatables/css/datatables.css">
+    <link rel="stylesheet" href="/sari-sari-store/assets/datatables/css/datatables.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
 
@@ -134,10 +140,61 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
 
 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- JQuery Javascript -->
+    <script src="/sari-sari-store/assets/jquery/js/jquery-3.7.1.js"></script>
+    <script src="/sari-sari-store/assets/jquery/js/jquery-ui.min.js"></script>
+
+    <!-- Bootstrap Javascript -->
+    <script src="/sari-sari-store/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Datatables Javascript -->
+    <script src="/sari-sari-store/assets/datatables/js/datatables.js"></script>
+    <script src="/sari-sari-store/assets/datatables/js/datatables.min.js"></script>
 
     <script src="/sari-sari-store/assets/js/productManagment.js"></script>
+    <script>
+        $(document).ready(function() {
+            // If the URL has ?section=..., update localStorage
+            const urlSection = new URLSearchParams(window.location.search).get('section');
+            if (urlSection) {
+                localStorage.setItem('activeSection', urlSection);
+            }
+
+            // Load section from localStorage
+            let savedSection = localStorage.getItem('activeSection') || 'dashboard';
+
+            // Show/hide content
+            function showSection(section) {
+                $('.content-section').hide(); // hide all
+                $('#' + section).show(); // show current
+
+                $('.sidebar-nav .nav-link').removeClass('active');
+                $(`.sidebar-nav .nav-link[data-section="${section}"]`).addClass('active');
+
+                // Optional: update the browser URL (without reloading)
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set('section', section);
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            // Initial load
+            showSection(savedSection);
+
+            // Sidebar click event
+            $('.sidebar-nav .nav-link').on('click', function(e) {
+                e.preventDefault(); // prevent default anchor behavior
+                const section = $(this).data('section');
+                localStorage.setItem('activeSection', section);
+                showSection(section);
+            });
+
+            // Include section in form submissions
+            $('form').on('submit', function() {
+                const section = localStorage.getItem('activeSection') || 'dashboard';
+                $('#current_section').val(section);
+            });
+        });
+    </script>
+
 </body>
 
 </html>

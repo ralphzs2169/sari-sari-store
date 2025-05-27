@@ -21,8 +21,10 @@ switch ($action) {
             $category->create($name, $description);
             $_SESSION['success'] = "Category added successfully.";
         }
-        header("Location: /sari-sari-store/views/adminPanel/index.php");
+        $currentSection = $_POST['current_section'] ?? 'dashboard';
+        header("Location: /sari-sari-store/views/adminPanel/index.php?section=" . urlencode($currentSection));
         exit;
+
 
     case 'update':
         $id = intval($_POST['category_id'] ?? 0);
