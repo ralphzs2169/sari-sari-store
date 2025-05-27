@@ -27,7 +27,9 @@ switch ($action) {
 
 
     case 'update':
-        $id = intval($_POST['category_id'] ?? 0);
+        error_log("NAME === " . $_POST['name']);
+        error_log("DESC === " . $_POST['description']);
+        $id = intval($_POST['editCategoryId'] ?? 0);
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
 
@@ -37,7 +39,8 @@ switch ($action) {
         } else {
             $_SESSION['category_error'] = "Please provide a valid category name.";
         }
-        header("Location: ../views/categories.php");
+        $currentSection = $_POST['current_section'] ?? 'categories';
+        header("Location: /sari-sari-store/views/adminPanel/index.php?section=products");
         exit;
 
     case 'delete':
@@ -46,6 +49,6 @@ switch ($action) {
             $category->delete($id);
             $_SESSION['success'] = "Category deleted.";
         }
-        header("Location: ../views/categories.php");
-        exit;
+        $currentSection = $_POST['current_section'] ?? 'dashboard';
+        header("Location: /sari-sari-store/views/adminPanel/index.php?section=products");
 }

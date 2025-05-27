@@ -90,6 +90,14 @@ let nextProductId = 6;
 let nextCategoryId = 4;
 let nextUnitId = 4;
 
+$(document).ready(function() {
+        $('#categoryTable').DataTable({
+            paging: true,
+            searching: true,
+            pageLength: 5
+        });
+    });
+
 // Set current date
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date();
@@ -119,6 +127,7 @@ function navigateToSection(sectionId) {
 
     document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
 }
+
 
 document.querySelectorAll('.sidebar-nav a').forEach(link => {
     link.addEventListener('click', function (e) {
@@ -377,17 +386,37 @@ function addUnit() {
     showAlert('Unit added successfully!', 'success');
 }
 
+
 function editUnit(id) {
     showAlert('Edit unit functionality will be implemented soon!', 'info');
 }
 
-function deleteUnit(id) {
-    if (confirm('Are you sure you want to delete this unit?')) {
-        units = units.filter(u => u.id !== id);
-        refreshUnitsTable();
-        showAlert('Unit deleted successfully!', 'success');
-    }
+function editCategory(category) {
+    document.getElementById('editCategoryId').value = category.category_id;
+    document.getElementById('editCategoryName').value = category.name;
+    document.getElementById('editCategoryDescription').value = category.description;
+
+    let modal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+    modal.show();
 }
+
+function confirmDelete(deleteUrl, entityName) {
+    Swal.fire({
+        title: `Delete ${entityName}?`,
+        text: `Are you sure you want to delete this ${entityName.toLowerCase()}? This action cannot be undone!`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: `Yes, delete ${entityName}`,
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = deleteUrl;
+        }
+    });
+}
+
 
 function refreshUnitsTable() {
     const tbody = document.getElementById('unitsTableBody');

@@ -1,6 +1,6 @@
     <div id="products" class="content-section" style="display:none;">
         <!-- Tabs for Products, Categories, and Units -->
-        <ul class="nav nav-tabs" id="productTabs" role="tablist">
+        <ul class="nav nav-tabs mb-3" id="productTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#products-pane">Products</button>
             </li>
@@ -23,7 +23,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table id="" class="table table-hover">
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
@@ -137,7 +137,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table id="categoryTable" class="table table-hover">
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
@@ -148,23 +148,28 @@
                             </tr>
                         </thead>
                         <tbody id="categoriesTableBody">
-                            <?php foreach ($categories as $category): ?>
+                            <?php
+                            $counter = 1; // Initialize counter
+                            foreach ($categories as $category): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($category['category_id']) ?></td>
+                                    <td><?= $counter++ ?></td> <!-- Display sequential number -->
                                     <td><?= htmlspecialchars($category['name']) ?></td>
                                     <td><?= htmlspecialchars($category['description']) ?></td>
-                                    <td><?= htmlspecialchars($category['product_count'] ?? 0) ?></td> <!-- Assuming your query provides product_count -->
+                                    <td><?= htmlspecialchars($category['product_count'] ?? 0) ?></td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-action" onclick="editCategory(<?= htmlspecialchars($category['category_id']) ?>)">
+                                        <button class="btn btn-sm btn-outline-primary btn-action"
+                                            onclick="editCategory(<?= htmlspecialchars(json_encode($category)) ?>)">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteCategory(<?= htmlspecialchars($category['category_id']) ?>)">
+                                        <button class="btn btn-sm btn-outline-danger btn-action"
+                                            onclick="confirmDelete('/sari-sari-store/controllers/ProductController.php?action=delete&id=<?= $product['product_id'] ?>', 'Product')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
+
 
                     </table>
                 </div>
@@ -316,7 +321,6 @@
                         <input type="hidden" name="current_section" id="current_section" value="">
 
 
-
                         <?php if (isset($_SESSION['category_error'])): ?>
                             <div class="alert alert-danger"><?php echo $_SESSION['category_error'];
                                                             unset($_SESSION['category_error']); ?></div>
@@ -452,6 +456,37 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="updateProduct()">Update Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-tags"></i> Edit Category</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editCategoryForm" action="/sari-sari-store/controllers/CategoryController.php?action=update" method="post">
+                        <input type="hidden" name="editCategoryId" id="editCategoryId">
+                        <input type="hidden" name="current_section" value="categories">
+
+                        <div class="mb-3">
+                            <label for="editCategoryName" class="form-label">Category Name</label>
+                            <input type="text" class="form-control" id="editCategoryName" name="name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editCategoryDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="editCategoryDescription" name="description" rows="3"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Update</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </form>
                 </div>
             </div>
         </div>
