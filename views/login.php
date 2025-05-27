@@ -16,7 +16,7 @@ $hasRegisterError = isset($_SESSION['register_error']);
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 </head>
 
-<body>
+<body data-register-error="<?= $hasRegisterError ? 'true' : 'false' ?>">
     <div class="container">
         <div class="auth-container">
             <!-- Login Form -->
@@ -135,61 +135,7 @@ $hasRegisterError = isset($_SESSION['register_error']);
     <script src="../assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/jquery/js/jquery-3.7.1.js"></script>
     <script src="../assets/jquery/js/jquery-ui.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Check if there's a register error from PHP session
-            const hasRegisterError = <?php echo $hasRegisterError ? 'true' : 'false'; ?>;
-
-            // Function to determine which form to show
-            function determineFormToShow() {
-                const urlHash = window.location.hash;
-                const urlParams = new URLSearchParams(window.location.search);
-                const showParam = urlParams.get('show');
-
-                const shouldShowRegister = urlHash === '#register' || showParam === 'register' || hasRegisterError;
-
-                if (shouldShowRegister) {
-                    showRegisterForm();
-                } else {
-                    showLoginForm();
-                }
-            }
-
-            // Call immediately and also after a tiny delay for hash processing
-            determineFormToShow();
-            setTimeout(determineFormToShow, 50);
-        });
-
-        function showRegisterForm() {
-            $('#loginForm').addClass('hidden');
-            $('#registerForm').removeClass('hidden');
-            // Add hash to URL to maintain state
-            window.location.hash = 'register';
-        }
-
-        function showLoginForm() {
-            $('#registerForm').addClass('hidden');
-            $('#loginForm').removeClass('hidden');
-            // Remove hash from URL if it is #register
-            if (window.location.hash === '#register') {
-                history.replaceState(null, null, window.location.pathname);
-            }
-        }
-
-        function togglePassword(fieldId) {
-            const field = document.getElementById(fieldId);
-            const toggle = document.getElementById(fieldId + 'Toggle');
-            if (field.type === 'password') {
-                field.type = 'text';
-                toggle.classList.remove('fa-eye');
-                toggle.classList.add('fa-eye-slash');
-            } else {
-                field.type = 'password';
-                toggle.classList.remove('fa-eye-slash');
-                toggle.classList.add('fa-eye');
-            }
-        }
-    </script>
+    <script src="../assets/js/login.js"></script>
 
     <?php
     // Clear session variables AFTER everything is rendered and JavaScript has executed

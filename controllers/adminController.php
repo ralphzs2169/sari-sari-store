@@ -22,17 +22,17 @@ switch ($action) {
         $_SESSION['old_reg_confirm'] = $confirm_password;
 
         // Custom validation with specific error messages
-        if (empty($username)) {
+        if (empty($username))
             $_SESSION['register_error'] = "Please enter a username.";
-        } elseif (empty($password)) {
+        elseif (empty($password))
             $_SESSION['register_error'] = "Please enter a password.";
-        } elseif (empty($confirm_password)) {
+        elseif (empty($confirm_password))
             $_SESSION['register_error'] = "Please confirm your password.";
-        } elseif ($password !== $confirm_password) {
+        elseif ($password !== $confirm_password)
             $_SESSION['register_error'] = "Passwords do not match. Please try again.";
-        } elseif (strlen($password) < 6) {
+        elseif (strlen($password) < 6)
             $_SESSION['register_error'] = "Password must be at least 6 characters long.";
-        } else {
+        else {
             // Check if username already exists
             $existingUser = $user->login($username);
             if ($existingUser) {
@@ -76,7 +76,7 @@ switch ($action) {
                 unset($_SESSION['error'], $_SESSION['old_username'], $_SESSION['old_password']);
                 $_SESSION['admin_id'] = $admin['admin_id'];
                 $_SESSION['admin_username'] = $admin['username'];
-                header("Location: ../views/dashboard.php");
+                header("Location: ../views/adminPanel/index.php");
                 exit;
             }
         }
