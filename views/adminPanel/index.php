@@ -16,6 +16,10 @@ $units = $unitModel->getAll();
 
 $productModel = new ProductModel($conn);
 $products = $productModel->getAll();
+$productCounts = $productModel->GetProductCounts();
+
+$totalProductCount = $productCounts[0]['total_products'];
+$totalLowStockCount = $productCounts[0]['low_stock_products'];
 
 session_start();
 $success = $_SESSION['success'] ?? '';
