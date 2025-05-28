@@ -32,6 +32,8 @@ $productCounts = $productModel->GetProductCounts();
 
 $salesModel = new SalesTransactionModel();
 $transactions = $salesModel->getAll();
+$totalSales = $salesModel->getTodaySalesTotal();
+$todayTransactionCount = $salesModel->countTodayTransactions();
 
 $totalProductCount = $productCounts[0]['total_products'];
 $totalLowStockCount = $productCounts[0]['low_stock_products'];

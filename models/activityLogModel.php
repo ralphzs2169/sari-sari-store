@@ -8,13 +8,11 @@ class ActivityLogModel
         $this->conn = $db;
     }
 
-    public function create($admin_id, $activity_type, $description, $product_id = null)
+    public function create($activity_type, $description)
     {
-        $stmt = $this->conn->prepare("CALL CreateActivityLog(:admin_id, :activity_type, :description, :product_id)");
-        $stmt->bindParam(':admin_id', $admin_id, PDO::PARAM_INT);
+        $stmt = $this->conn->prepare("CALL CreateActivityLog(:activity_type, :description)");
         $stmt->bindParam(':activity_type', $activity_type);
         $stmt->bindParam(':description', $description);
-        $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
         return $stmt->execute();
     }
 

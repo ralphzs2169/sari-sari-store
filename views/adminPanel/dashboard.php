@@ -29,7 +29,8 @@
                 <div class="stats-icon" style="background: linear-gradient(135deg, #27ae60, #229954);">
                     <i class="fas fa-peso-sign"></i>
                 </div>
-                <h3 class="stats-number text-success">₱15,450</h3>
+
+                <h3 class="stats-number text-success">₱<?= number_format($totalSales, 2) ?></h3>
                 <p class="stats-label">Today's Sales</p>
             </div>
         </div>
@@ -38,7 +39,7 @@
                 <div class="stats-icon" style="background: linear-gradient(135deg, #e67e22, #d35400);">
                     <i class="fas fa-shopping-cart"></i>
                 </div>
-                <h3 class="stats-number text-warning">127</h3>
+                <h3 class="stats-number text-warning"><?= number_format($todayTransactionCount) ?></h3>
                 <p class="stats-label">Transactions Today</p>
             </div>
         </div>

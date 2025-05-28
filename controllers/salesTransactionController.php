@@ -1,63 +1,97 @@
 <?php
 session_start();
 
+require_once "../config/database.php";
 require_once "../models/salesTransactionModel.php";
 require_once "../models/saleItemModel.php";
+require_once "../models/productModel.php";
+require_once "../models/categoryModel.php";
+require_once "../models/unitModel.php";
+require_once "../models/activityLogModel.php";
+
 
 $salesTransaction = new SalesTransactionModel();
 $saleItemModel = new SaleItemModel();
+
+$activityLog = new ActivityLogModel($conn);
+$categoryModel = new CategoryModel($conn);
+$unitModel = new UnitModel($conn);
+
+$productModel = new ProductModel($conn, $categoryModel, $unitModel);
 $action = $_GET['action'] ?? '';
 
 switch ($action) {
     case 'create':
-        // Support JSON payload (AJAX)
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-        if ($data) {
-            $customer_id = !empty($data['customer_id']) ? intval($data['customer_id']) : null;
-            $admin_id = isset($_SESSION['admin_id']) ? intval($_SESSION['admin_id']) : 0;
-            $total_amount = isset($data['total_amount']) ? floatval($data['total_amount']) : 0;
-            $payment_method = $data['payment_method'] ?? 'cash';
-            // $cart = $data['cart'] ?? [];
-            if ($admin_id > 0 && $total_amount > 0) {
-                $sale_id = $salesTransaction->create($customer_id, $admin_id, $total_amount, $payment_method);
-                // TODO: Save cart items to a sale_items table if needed
-                echo json_encode(['success' => true, 'sale_id' => $sale_id]);
-                exit;
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Invalid sale data.']);
-                exit;
+        $customer_id = !empty($_POST['customer_id']) ? intval($_POST['customer_id']) : null;
+        $admin_id = isset($_SESSION['admin_id']) ? intval($_SESSION['admin_id']) : 0;
+        $total_amount = isset($_POST['total_amount']) ? floatval($_POST['total_amount']) : 0;
+        $payment_method = $_POST['payment_method'] ?? 'cash';
+        $cart = isset($_POST['cart']) ? json_decode($_POST['cart'], true) : [];
+        if ($admin_id > 0 && $total_amount > 0) {
+            $sale_id = $salesTransaction->create($customer_id, $admin_id, $total_amount, $payment_method);
+
+            $productNames = [];
+            foreach ($cart as $item) {
+                $product_id = isset($item['id']) ? intval($item['id']) : 0;
+                if ($product_id > 0) {
+                    $product = $productModel->getById($product_id);
+                    if ($product && isset($product['name'])) {
+                        $productNames[] = $product['name'];
+                    }
+                }
             }
-        } else {
-            // Fallback to form POST (no AJAX)
-            $customer_id = !empty($_POST['customer_id']) ? intval($_POST['customer_id']) : null;
-            $admin_id = isset($_SESSION['admin_id']) ? intval($_SESSION['admin_id']) : 0;
-            $total_amount = isset($_POST['total_amount']) ? floatval($_POST['total_amount']) : 0;
-            $payment_method = $_POST['payment_method'] ?? 'cash';
-            $cart = isset($_POST['cart']) ? json_decode($_POST['cart'], true) : [];
-            if ($admin_id > 0 && $total_amount > 0) {
-                $sale_id = $salesTransaction->create($customer_id, $admin_id, $total_amount, $payment_method);
-                // Save each cart item to sale_items
-                if ($sale_id && is_array($cart)) {
-                    foreach ($cart as $item) {
-                        $product_id = isset($item['id']) ? intval($item['id']) : 0;
-                        $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
-                        $price = isset($item['price']) ? floatval($item['price']) : 0;
-                        if ($product_id > 0 && $quantity > 0) {
-                            $saleItemModel->create($sale_id, $product_id, $quantity, $price);
+
+            // Custom formatting for list
+            $productCount = count($productNames);
+            if ($productCount > 1) {
+                $lastItem = array_pop($productNames);
+                $description = "Customer Purchased " . implode(", ", $productNames) . " and " . $lastItem;
+            } else {
+                $description = "Customer Purchased " . implode(", ", $productNames);
+            }
+
+            $activityLog->create("new_sale_transaction_completed", $description);
+            // Save each cart item to sale_items
+            if ($sale_id && is_array($cart)) {
+                foreach ($cart as $item) {
+                    $product_id = isset($item['id']) ? intval($item['id']) : 0;
+                    $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
+                    $price = isset($item['price']) ? floatval($item['price']) : 0;
+                    if ($product_id > 0 && $quantity > 0) {
+                        $saleItemModel->create($sale_id, $product_id, $quantity, $price);
+
+                        // fetch product details to update stock
+                        $product = $productModel->getById($product_id);
+                        if ($product) {
+                            $newStock = max(0, intval($product['quantity_in_stock']) - $quantity);
+
+                            // Call update method with current product info, updated stock, and skip logging
+                            $productModel->update(
+                                $product_id,
+                                $product['name'],
+                                $product['category_id'],
+                                $product['unit_id'],
+                                $product['cost_price'],
+                                $product['selling_price'],
+                                $newStock,
+                                $product['image_path'],
+                                true // skipLogging = true
+                            );
                         }
                     }
                 }
-                $_SESSION['success'] = "Sale transaction recorded successfully.";
-                // Optionally clear cart in session or show receipt
-                header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");
-                exit;
-            } else {
-                $_SESSION['sales_error'] = "Invalid sale data.";
-                header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");
-                exit;
             }
+            $_SESSION['success'] = "Sale transaction recorded successfully.";
+            // Optionally clear cart in session or show receipt
+            header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");
+            exit;
+        } else {
+            $_SESSION['sales_error'] = "Invalid sale data.";
+            header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");
+            exit;
         }
+        break;
+
 
     case 'delete':
         // Optional: implement if you want to allow deleting sales

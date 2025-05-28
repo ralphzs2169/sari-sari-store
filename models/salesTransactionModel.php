@@ -47,4 +47,20 @@ class SalesTransactionModel
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getTodaySalesTotal()
+    {
+        $stmt = $this->conn->prepare("CALL GetTodaySalesTotal()");
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? floatval($row['total']) : 0.0;
+    }
+
+    public function countTodayTransactions()
+    {
+        $stmt = $this->conn->prepare("CALL GetTodayTransactionCount()");
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? intval($row['total']) : 0;
+    }
 }
