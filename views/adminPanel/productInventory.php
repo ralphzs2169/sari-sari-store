@@ -1,4 +1,4 @@
-    <div id="products" class="content-section" style="display:none;">
+    <div id="products" class="content-section">
         <!-- Tabs for Products, Categories, and Units -->
         <ul class="nav nav-tabs mb-3" id="productTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -178,79 +178,6 @@
         </div>
 
 
-        <!-- Add Product Modal -->
-        <div class="modal fade" id="addProductModal" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title"><i class="fas fa-plus"></i> Add New Product</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form action="\sari-sari-store\controllers\productController.php?action=create" method="post" class="container mt-3">
-                            <div class="row mb-3">
-                                <!-- Product Name - full width -->
-                                <div class="col-12">
-                                    <label>Product Name</label>
-                                    <input type="text" name="name" class="form-control" required>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <!-- Category -->
-                                <div class="col-md-6">
-                                    <label>Category</label>
-                                    <select name="category_id" class="form-select" required>
-                                        <option value="">Select Category</option>
-                                        <?php foreach ($categories as $category): ?>
-                                            <option value="<?= htmlspecialchars($category['category_id']) ?>">
-                                                <?= htmlspecialchars($category['name']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <!-- Unit -->
-                                <div class="col-md-6">
-                                    <label>Unit</label>
-                                    <select name="unit_id" class="form-select" required>
-                                        <option value="">Select Unit</option>
-                                        <?php foreach ($units as $unit): ?>
-                                            <option value="<?= htmlspecialchars($unit['unit_id']) ?>">
-                                                <?= htmlspecialchars($unit['name']) ?> (<?= htmlspecialchars($unit['abbreviation']) ?>)
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <!-- Cost Price -->
-                                <div class="col-md-6">
-                                    <label>Cost Price (₱)</label>
-                                    <input type="number" name="cost_price" class="form-control" step="0.01" min="0" required>
-                                </div>
-                                <!-- Selling Price -->
-                                <div class="col-md-6">
-                                    <label>Selling Price (₱)</label>
-                                    <input type="number" name="selling_price" class="form-control" step="0.01" min="0" required>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <!-- Initial Stock - full width -->
-                                <div class="col-12">
-                                    <label>Initial Stock</label>
-                                    <input type="number" name="quantity_in_stock" class="form-control" min="0" required>
-                                </div>
-                            </div>
-
-                            <button type="submit" class="btn btn-success">Save Product</button>
-                            <a href="index.php" class="btn btn-secondary">Back</a>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
 
 
 
@@ -343,7 +270,7 @@
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <form action="/sari-sari-store/controllers/productController.php?action=update" method="post" class="container mt-3">
+                        <form enctype="multipart/form-data" action="/sari-sari-store/controllers/productController.php?action=update" method="post" class="container mt-3">
 
                             <input type="hidden" name="editProductId" id="editProductId">
                             <input type="hidden" name="current_section" value="categories">
@@ -354,6 +281,25 @@
                                     <input type="text" name="name" id="editProductName" class="form-control" required>
                                 </div>
                             </div>
+
+                            <!-- Image Display and Replace Section -->
+                            <div class="row mb-3 align-items-center">
+                                <!-- Image preview, hidden by default -->
+                                <div class="col-md-6" id="imagePreviewContainer" style="display:none;">
+                                    <label>Current Product Image</label><br>
+                                    <img id="editProductImagePreview" src="" alt="Product Image"
+                                        style="width: 200px; height: 150px; object-fit: contain; border: 1px solid #ccc; padding: 5px;">
+                                </div>
+
+                                <!-- File input -->
+                                <div class="col-md-6" id="fileInputContainer">
+                                    <label for="replaceProductImage" id="fileInputLabel">Add Product Image</label>
+                                    <input class="form-control" type="file" id="replaceProductImage" name="product_image" accept="image/*" required>
+                                    <input type="hidden" name="current_image_path" id="currentImagePath" value="">
+                                </div>
+                            </div>
+
+
 
                             <div class="row mb-3">
                                 <div class="col-md-6">

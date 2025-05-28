@@ -1,10 +1,18 @@
 <?php
+session_start();
+
+// Check if admin_id is set in the session. If not, redirect to login page.
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: /sari-sari-store/views/login.php');
+    exit();
+}
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../models/categoryModel.php';
 require_once __DIR__ . '/../../models/unitModel.php';
 require_once __DIR__ . '/../../models/productModel.php';
 require_once __DIR__ . '/../../models/activityLogModel.php';
+require_once __DIR__ . '/../../models/salesTransactionModel.php';
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -18,14 +26,16 @@ $units = $unitModel->getAll();
 $activityLogModel = new ActivityLogModel($conn);
 $activityLogs = $activityLogModel->getAll();
 
-$productModel = new ProductModel($conn);
+$productModel = new ProductModel($conn, $categoryModel, $unitModel);
 $products = $productModel->getAll();
 $productCounts = $productModel->GetProductCounts();
+
+$salesModel = new SalesTransactionModel();
+$transactions = $salesModel->getAll();
 
 $totalProductCount = $productCounts[0]['total_products'];
 $totalLowStockCount = $productCounts[0]['low_stock_products'];
 
-session_start();
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? $_SESSION['category_error'] ?? '';
 
@@ -54,7 +64,17 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
     <link rel="stylesheet" href="/sari-sari-store/assets/datatables/css/datatables.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Content section visibility rules */
+        .content-section {
+            display: none;
+            width: 100%;
+            padding: 20px;
+        }
 
+        /* Make sure the container takes full width */
+        .col-lg-10.col-md-9 {
+            position: relative;
+        }
     </style>
 </head>
 
@@ -120,10 +140,15 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
                 <?php include 'dashboard.php'; ?>
 
 
+                <?php include 'pos.php'; ?>
                 <!-- Products Section -->
+                <?php include 'salesTransaction.php'; ?>
                 <?php include 'productInventory.php'; ?>
 
-                <!-- Other sections -->
+
+                <!-- POS Section -->
+
+                <!-- Sales Section -->
                 <div id="sales" class="content-section">
                     <div class="table-container">
                         <h4><i class="fas fa-cash-register text-primary"></i> Sales Transactions</h4>
@@ -154,6 +179,84 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
             </div>
         </div>
     </div>
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus"></i> Add New Product</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form enctype="multipart/form-data" action="/sari-sari-store/controllers/productController.php?action=create" method="post" class="container mt-3">
+
+                        <div class="row mb-3">
+                            <!-- Product Name - full width -->
+                            <div class="col-12">
+                                <label>Product Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productImage" class="form-label">Product Image</label>
+                            <input class="form-control" type="file" id="productImage" name="product_image" accept="image/*">
+                        </div>
+
+                        <div class="row mb-3">
+                            <!-- Category -->
+                            <div class="col-md-6">
+                                <label>Category</label>
+                                <select name="category_id" class="form-select" required>
+                                    <option value="">Select Category</option>
+                                    <?php foreach ($categories as $category): ?>
+                                        <option value="<?= htmlspecialchars($category['category_id']) ?>">
+                                            <?= htmlspecialchars($category['name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <!-- Unit -->
+                            <div class="col-md-6">
+                                <label>Unit</label>
+                                <select name="unit_id" class="form-select" required>
+                                    <option value="">Select Unit</option>
+                                    <?php foreach ($units as $unit): ?>
+                                        <option value="<?= htmlspecialchars($unit['unit_id']) ?>">
+                                            <?= htmlspecialchars($unit['name']) ?> (<?= htmlspecialchars($unit['abbreviation']) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <!-- Cost Price -->
+                            <div class="col-md-6">
+                                <label>Cost Price (₱)</label>
+                                <input type="number" name="cost_price" class="form-control" step="0.01" min="0" required>
+                            </div>
+                            <!-- Selling Price -->
+                            <div class="col-md-6">
+                                <label>Selling Price (₱)</label>
+                                <input type="number" name="selling_price" class="form-control" step="0.01" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <!-- Initial Stock - full width -->
+                            <div class="col-12">
+                                <label>Initial Stock</label>
+                                <input type="number" name="quantity_in_stock" class="form-control" min="0" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Save Product</button>
+                        <a href="index.php" class="btn btn-secondary">Back</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 
@@ -169,7 +272,9 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
 
     <script src="/sari-sari-store/assets/sweetalert2/dist/sweetalert2.all.min.js"></script>
     <script src="/sari-sari-store/assets/js/productManagment.js"></script>
+    <script src="/sari-sari-store/assets/js/pos.js"></script>
     <script>
+        // Initialize DataTables
         $(document).ready(function() {
             $('#activityTable').DataTable({
                 paging: true,
@@ -179,48 +284,86 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
                 pageLength: 5,
                 ordering: false
             });
-        });
+        }); // Global navigation function
+        window.navigateToSection = function(sectionId) {
+            console.log('Navigating to section:', sectionId);
 
+            // Debug: List all content sections
+            console.log('All content sections:');
+            $('.content-section').each(function() {
+                console.log('Found section:', this.id);
+            });
+
+            // First, hide all sections with !important to override any CSS
+            $('.content-section').css('cssText', 'display: none !important');
+
+            // Then get and show the target section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                console.log('Found target section:', sectionId);
+                // Use !important to override any other CSS
+                $(targetSection).css('cssText', 'display: block !important');
+
+                // Debug: Verify the element's display state
+                const computedStyle = window.getComputedStyle(targetSection);
+                console.log('Target section computed style:', {
+                    'display': computedStyle.display,
+                    'visibility': computedStyle.visibility,
+                    'opacity': computedStyle.opacity,
+                    'position': computedStyle.position,
+                    'zIndex': computedStyle.zIndex,
+                    'overflow': computedStyle.overflow
+                });
+
+                // Debug: Check parent elements' visibility
+                let parent = targetSection.parentElement;
+                while (parent) {
+                    const pStyle = window.getComputedStyle(parent);
+                    console.log('Parent element:', parent.tagName, {
+                        'display': pStyle.display,
+                        'visibility': pStyle.visibility,
+                        'opacity': pStyle.opacity,
+                        'position': pStyle.position,
+                        'overflow': pStyle.overflow
+                    });
+                    parent = parent.parentElement;
+                }
+            } else {
+                console.error('Target section not found:', sectionId);
+                // List all elements with id matching sectionId
+                const possibleElements = document.querySelectorAll(`#${sectionId}`);
+                console.log(`Found ${possibleElements.length} elements with id '${sectionId}':`);
+                possibleElements.forEach(el => console.log(el));
+            }
+
+            // Update sidebar navigation state
+            $('.sidebar-nav .nav-link').removeClass('active');
+            $(`.sidebar-nav .nav-link[data-section="${sectionId}"]`).addClass('active');
+
+            // Save state and update URL
+            localStorage.setItem('activeSection', sectionId);
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('section', sectionId);
+            window.history.replaceState({}, '', newUrl);
+        };
+
+        // Initialize navigation on page load
         $(document).ready(function() {
-            // If the URL has ?section=..., update localStorage
             const urlSection = new URLSearchParams(window.location.search).get('section');
-            if (urlSection) {
-                localStorage.setItem('activeSection', urlSection);
-            }
+            const savedSection = urlSection || localStorage.getItem('activeSection') || 'dashboard';
 
-            // Load section from localStorage
-            let savedSection = localStorage.getItem('activeSection') || 'dashboard';
+            console.log('Initial section:', savedSection);
 
-            // Show/hide content
-            function showSection(section) {
-                $('.content-section').hide(); // hide all
-                $('#' + section).show(); // show current
-
-                $('.sidebar-nav .nav-link').removeClass('active');
-                $(`.sidebar-nav .nav-link[data-section="${section}"]`).addClass('active');
-
-                // Optional: update the browser URL (without reloading)
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.set('section', section);
-                window.history.replaceState({}, '', newUrl);
-            }
-
-            // Initial load
-            showSection(savedSection);
-
-            // Sidebar click event
+            // Set up navigation click handlers
             $('.sidebar-nav .nav-link').on('click', function(e) {
-                e.preventDefault(); // prevent default anchor behavior
+                e.preventDefault();
                 const section = $(this).data('section');
-                localStorage.setItem('activeSection', section);
-                showSection(section);
+                console.log('Navigation clicked:', section);
+                navigateToSection(section);
             });
 
-            // Include section in form submissions
-            $('form').on('submit', function() {
-                const section = localStorage.getItem('activeSection') || 'dashboard';
-                $('#current_section').val(section);
-            });
+            // Do initial navigation
+            navigateToSection(savedSection);
         });
     </script>
 

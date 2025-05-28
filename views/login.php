@@ -26,7 +26,7 @@ $hasRegisterError = isset($_SESSION['register_error']);
                         <div class="store-icon">
                             <i class="fas fa-store"></i>
                         </div>
-                        <h2 class="store-title">Tindahan ni Aling Rosa</h2>
+                        <h2 class="store-title">JRJ Sari-Sari Store</h2>
                         <p class="store-subtitle">Sari-Sari Store Management System</p>
                     </div>
 
@@ -83,7 +83,7 @@ $hasRegisterError = isset($_SESSION['register_error']);
                             <i class="fas fa-user-plus"></i>
                         </div>
                         <h2 class="store-title">Create Account</h2>
-                        <p class="store-subtitle">Join Tindahan ni Aling Rosa</p>
+                        <p class="store-subtitle">Join JRJ Sari-Sari Store</p>
                     </div>
 
                     <form id="registerFormElement" action="../controllers/adminController.php?action=create" method="POST">

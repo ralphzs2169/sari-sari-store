@@ -27,8 +27,6 @@ switch ($action) {
 
 
     case 'update':
-        error_log("NAME === " . $_POST['name']);
-        error_log("DESC === " . $_POST['description']);
         $id = intval($_POST['editCategoryId'] ?? 0);
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');

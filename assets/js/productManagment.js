@@ -1,3 +1,5 @@
+console.log("Global products data:", typeof products, products);
+
 $(document).ready(function() {
         $('#categoryTable, #unitTable, #productTable').DataTable({
             paging: true,
@@ -19,61 +21,67 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('currentDate').textContent = today.toLocaleDateString('en-PH', options);
 });
 
-// Navigation functionality
+// Navigation functionality - THIS IS THE PRIMARY NAVIGATOR
 function navigateToSection(sectionId) {
-    // Hide all content sections
+    // Hide all content sections by removing 'active' class
     document.querySelectorAll('.content-section').forEach(section => {
         section.classList.remove('active');
     });
 
-    // Show target section
-    document.getElementById(sectionId).classList.add('active');
+    // Show target section by adding 'active' class
+    const target = document.getElementById(sectionId);
+    if (target) {
+        target.classList.add('active');
+    }
 
-    // Update sidebar navigation
-    document.querySelectorAll('.nav-link').forEach(link => {
+    // Update sidebar nav (visual active state)
+    document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
         link.classList.remove('active');
     });
+    const activeLink = document.querySelector(`.sidebar-nav .nav-link[data-section="${sectionId}"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
 
-    document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+    // Special handling for the 'products' section if it has tabs
+    if (sectionId === 'products') {
+        setTimeout(() => {
+            document.querySelectorAll('#productTabs .nav-link').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('#productTabContent .tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            const defaultTab = document.querySelector('#productTabs .nav-link[data-bs-target="#products-pane"]');
+            const defaultPane = document.querySelector('#products-pane');
+            if (defaultTab && defaultPane) {
+                defaultTab.classList.add('active');
+                defaultPane.classList.add('show', 'active');
+            }
+        }, 10);
+    }
+
+    // Update URL and localStorage for deep linking and browser navigation
+    localStorage.setItem('activeSection', sectionId);
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('section', sectionId);
+    window.history.replaceState({}, '', newUrl);
 }
 
-document.querySelectorAll('.sidebar-nav a').forEach(link => {
-    link.addEventListener('click', function (e) {
-        e.preventDefault();
-        const section = this.getAttribute('data-section');
 
-        // Hide all sections
-        document.querySelectorAll('.content-section').forEach(sec => sec.style.display = 'none');
 
-        // Show selected section
-        const target = document.getElementById(section);
-        if (target) {
-            target.style.display = 'block';
+document.addEventListener('DOMContentLoaded', function() {
+    // If the URL has ?section=..., update localStorage
+    const urlSection = new URLSearchParams(window.location.search).get('section');
+    if (urlSection) {
+        localStorage.setItem('activeSection', urlSection);
+    }
 
-            // If entering the products section
-            if (section === 'products') {
-                // Wait a moment to ensure the section is visible
-                setTimeout(() => {
-                    // Deactivate all tabs and panes
-                    document.querySelectorAll('#productTabs .nav-link').forEach(tab => tab.classList.remove('active'));
-                    document.querySelectorAll('#productTabContent .tab-pane').forEach(pane => {
-                        pane.classList.remove('show', 'active');
-                    });
+    // Load section from localStorage or default to 'dashboard'
+    let savedSection = localStorage.getItem('activeSection') || 'dashboard';
 
-                    // Activate the default products tab
-                    const defaultTab = document.querySelector('#productTabs .nav-link[data-bs-target="#products-pane"]');
-                    const defaultPane = document.querySelector('#products-pane');
-                    if (defaultTab && defaultPane) {
-                        defaultTab.classList.add('active');
-                        defaultPane.classList.add('show', 'active');
-                    }
-                }, 10); // Let the browser repaint first
-            }
-        }
-    });
+    // Navigate to the initial section
+    navigateToSection(savedSection); // <--- Call the main navigator here
+
 });
-
-
 
 
 // Handle sidebar navigation clicks
@@ -87,12 +95,17 @@ document.querySelectorAll('[data-section]').forEach(link => {
 
 // Product management functions
 function showAddProductModal() {
-    navigateToSection('products');
     setTimeout(() => {
-        const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+        const modalEl = document.getElementById('addProductModal');
+        if (!modalEl) {
+            console.error("Modal element not found!");
+            return;
+        }
+        const modal = new bootstrap.Modal(modalEl);
         modal.show();
-    }, 300);
+    }, 100);  // Try increasing the delay
 }
+
 
 
 
@@ -199,7 +212,6 @@ function refreshCategoriesTable() {
     });
 }
 
-
 function editProduct(product) {
     document.getElementById('editProductId').value = product.product_id;
     document.getElementById('editProductName').value = product.name;
@@ -209,9 +221,35 @@ function editProduct(product) {
     document.getElementById('editProductSellingPrice').value = product.selling_price;
     document.getElementById('editProductStock').value = product.quantity_in_stock;
 
-    let modal = new bootstrap.Modal(document.getElementById('editProductModal'));
-    modal.show();
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+  const imagePreview = document.getElementById('editProductImagePreview');
+  const fileInputLabel = document.getElementById('fileInputLabel');
+  const fileInput = document.getElementById('replaceProductImage');
+  const currentImagePathInput = document.getElementById('currentImagePath');
+
+  if (product.image_path && product.image_path.trim() !== '') {
+    // Show image preview and set replace label
+    imagePreview.src = product.image_path;
+    imagePreviewContainer.style.display = 'block';
+
+    fileInputLabel.textContent = 'Replace Image';
+    fileInput.required = false; // Not required to replace
+    currentImagePathInput.value = product.image_path;
+  } else {
+    // No image — hide preview and show add label
+    imagePreview.src = '';
+    imagePreviewContainer.style.display = 'none';
+
+    fileInputLabel.textContent = 'Add Product Image';
+    fileInput.required = true; // Must upload new image
+    currentImagePathInput.value = '';
+  }
+
+  // Show the modal
+  let modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+  modal.show();
 }
+
 
 
 function editCategory(category) {

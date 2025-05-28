@@ -99,8 +99,26 @@ body {
 
 .action-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(44, 90, 160, 0.3);
-    color: white;
+}
+
+/* Content Sections - only .active is visible */
+.content-section {
+    display: none;
+    width: 100%;
+    padding: 30px;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+}
+
+.content-section.active {
+    display: block;
+}
+
+/* Ensure proper Bootstrap grid behavior */
+.col-lg-10.col-md-9 {
+    position: relative;
 }
 
 .action-btn i {
@@ -160,17 +178,10 @@ body {
 }
 
 
+/* Content section transitions */
 .content-section {
-    background: white;
-    border-radius: 15px;
-    padding: 30px;
-    margin: 20px 0;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
-    display: none;
-}
-
-.content-section.active {
-    display: block;
+    transition: opacity 0.3s ease;
+    opacity: 1;
 }
 
 .table-container {

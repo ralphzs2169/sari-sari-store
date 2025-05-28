@@ -7,7 +7,12 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" data-section="products" id="products-link">
+                <a class="nav-link" href="#" data-section="pos">
+                    <i class="fas fa-shopping-cart"></i> Point of Sale
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-section="products">
                     <i class="fas fa-box"></i> Product Inventory
                 </a>
             </li>

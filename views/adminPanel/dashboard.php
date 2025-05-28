@@ -58,16 +58,16 @@
         <div class="col-lg-4 mb-4">
             <div class="quick-actions">
                 <h5 class="mb-3"><i class="fas fa-bolt text-warning"></i> Quick Actions</h5>
-                <a href="#" class="action-btn" onclick="navigateToSection('products')">
+                <a href="#" class="action-btn" onclick="showAddProductModal()">
                     <i class="fas fa-plus-circle"></i> Add New Product
                 </a>
-                <a href="#" class="action-btn" onclick="navigateToSection('sales')">
+                <a href="?section=sales" class="action-btn" data-section="sales">
                     <i class="fas fa-cash-register"></i> New Sale Transaction
                 </a>
-                <a href="#" class="action-btn" onclick="navigateToSection('reports')">
+                <a href="?section=reports" class="action-btn" data-section="reports">
                     <i class="fas fa-chart-bar"></i> Generate Report
                 </a>
-                <a href="#" class="action-btn" onclick="navigateToSection('products')">
+                <a href="?section=products" class="action-btn" data-section="products">
                     <i class="fas fa-warehouse"></i> Check Inventory
                 </a>
             </div>
