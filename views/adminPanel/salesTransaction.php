@@ -1,11 +1,22 @@
 <div id="sales" class="content-section">
+    <!-- Tabs for Sales Transactions, Sales Analytics, Top Products -->
+    <ul class="nav nav-tabs mb-3" id="salesTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales-pane" type="button" role="tab">Sales Transactions</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics-pane" type="button" role="tab">Sales Analytics</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="top-products-tab" data-bs-toggle="tab" data-bs-target="#top-products-pane" type="button" role="tab">Top Products</button>
+        </li>
+    </ul>
     <div class="tab-content" id="salesTabContent">
         <!-- Sales Transactions Tab -->
         <div class="tab-pane fade show active" id="sales-pane" role="tabpanel" aria-labelledby="sales-tab">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4><i class="fas fa-receipt text-success"></i> Sales Transactions</h4>
             </div>
-
             <table id="salesTable" class="table table-hover table-striped">
                 <thead class="table-light">
                     <tr>
@@ -20,9 +31,7 @@
                 </thead>
                 <tbody>
                     <?php
-
                     $counter = 1;
-
                     foreach ($transactions as $transaction):
                         $admin = $transaction['username'];
                         $date = date('F j, Y | g:i A', strtotime($transaction['sale_date']));
@@ -60,7 +69,9 @@
                         <?php endforeach; ?>
                 </tbody>
             </table>
-            <!-- Sales Analytics Chart Section -->
+        </div>
+        <!-- Sales Analytics Tab -->
+        <div class="tab-pane fade" id="analytics-pane" role="tabpanel" aria-labelledby="analytics-tab">
             <div class="mt-4" id="sales-analytics-section">
                 <div class="d-flex flex-wrap align-items-center mb-3 gap-2">
                     <h5 class="text-success mb-0 me-3"><i class="fas fa-chart-bar"></i> Sales Analytics</h5>
@@ -86,8 +97,9 @@
                     <canvas id="salesChart" height="300" style="min-height:300px;max-height:400px;width:100% !important;"></canvas>
                 </div>
             </div>
-
-            <!-- Top Products Chart Section -->
+        </div>
+        <!-- Top Products Tab -->
+        <div class="tab-pane fade" id="top-products-pane" role="tabpanel" aria-labelledby="top-products-tab">
             <div class="mt-4" id="topProductsSection">
                 <div class="d-flex align-items-center mb-3 gap-2">
                     <h5 class="text-success mb-0 me-3"><i class="fas fa-chart-bar"></i> Top Products</h5>
@@ -96,11 +108,8 @@
                     <canvas id="topProductsChart" height="350" style="min-height:350px;max-height:500px;width:100% !important;"></canvas>
                 </div>
             </div>
-
         </div>
     </div>
-
-
 </div>
 
 <!-- Transaction Details Modal -->
@@ -319,6 +328,7 @@
     const topProductValues = <?= json_encode($topProductValues) ?>;
     let topProductsChart;
 
+    // --- Chart.js Tab Handling ---
     function renderTopProductsChart(labels, data) {
         const canvas = document.getElementById('topProductsChart');
         if (!canvas) {
@@ -380,12 +390,46 @@
             }
         });
     }
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            var canvas = document.getElementById('topProductsChart');
-            if (canvas) {
-                renderTopProductsChart(topProductLabels, topProductValues);
+
+    let salesChartInitialized = false;
+    let topProductsChartInitialized = false;
+
+    function renderSalesChartIfNeeded() {
+        if (!salesChartInitialized) {
+            // If you have a renderSalesChart() function, call it here
+            if (typeof renderSalesChart === 'function') {
+                renderSalesChart();
             }
-        }, 200);
+            salesChartInitialized = true;
+        }
+    }
+
+    function renderTopProductsChartIfNeeded() {
+        if (!topProductsChartInitialized) {
+            renderTopProductsChart(topProductLabels, topProductValues);
+            topProductsChartInitialized = true;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Render sales chart if analytics tab is active by default
+        if (document.getElementById('analytics-pane').classList.contains('show')) {
+            renderSalesChartIfNeeded();
+        }
+        // Render top products chart if top products tab is active by default
+        if (document.getElementById('top-products-pane').classList.contains('show')) {
+            renderTopProductsChartIfNeeded();
+        }
+        // Tab shown event
+        var salesTabs = document.getElementById('salesTabs');
+        if (salesTabs) {
+            salesTabs.addEventListener('shown.bs.tab', function(event) {
+                if (event.target.getAttribute('data-bs-target') === '#analytics-pane') {
+                    renderSalesChartIfNeeded();
+                } else if (event.target.getAttribute('data-bs-target') === '#top-products-pane') {
+                    renderTopProductsChartIfNeeded();
+                }
+            });
+        }
     });
 </script>

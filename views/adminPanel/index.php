@@ -33,7 +33,6 @@ $productCounts = $productModel->GetProductCounts();
 $salesModel = new SalesTransactionModel();
 $transactions = $salesModel->getAll();
 $topProducts = $salesModel->getTopProducts();
-echo print_r($topProducts);
 $totalSales = $salesModel->getTodaySalesTotal();
 $todayTransactionCount = $salesModel->countTodayTransactions();
 
@@ -553,7 +552,10 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
         // Initial render
         $(document).ready(function() {
             if ($('#salesChart').length) {
-                updateSalesChart();
+                // Delay to ensure tab/canvas is visible if analytics tab is default
+                setTimeout(function() {
+                    updateSalesChart();
+                }, 200);
             }
             // Date range filter logic
             $('#salesChartRange').on('change', function() {
@@ -567,6 +569,24 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
             $('#salesChartStart, #salesChartEnd, #salesChartPayment').on('change', function() {
                 updateSalesChart();
             });
+
+            // --- Ensure sales analytics chart renders when tab is shown ---
+            const analyticsTab = document.querySelector('button[data-bs-target="#analytics-pane"]');
+            if (analyticsTab) {
+                analyticsTab.addEventListener('shown.bs.tab', function(event) {
+                    if ($('#salesChart').length) {
+                        setTimeout(function() {
+                            updateSalesChart();
+                        }, 100);
+                    }
+                });
+            }
+            // Also, if the analytics tab is visible on load (e.g., after navigation), render chart
+            if ($('#analytics-pane').hasClass('show') && $('#salesChart').length) {
+                setTimeout(function() {
+                    updateSalesChart();
+                }, 100);
+            }
         });
         // Update chart based on filters
         function updateSalesChart() {
