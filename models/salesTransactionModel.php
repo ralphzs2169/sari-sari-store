@@ -64,6 +64,14 @@ class SalesTransactionModel
         return $row ? intval($row['total']) : 0;
     }
 
+    public function getSalesByCategory()
+    {
+        $stmt = $this->conn->prepare("CALL GetSalesByCategory()");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
     public function voidTransaction($sale_id)
     {
         $stmt = $this->conn->prepare("CALL VoidTransaction(:sale_id)");

@@ -111,7 +111,36 @@ switch ($action) {
     case 'void':
         $sale_id = intval($_POST['sale_id'] ?? 0);
         if ($sale_id > 0) {
+            // Get all sale items linked to this sale_id
+            $saleItems = $saleItemModel->getBySaleId($sale_id);
+
+            foreach ($saleItems as $item) {
+                $product_id = $item['product_id'];
+                $quantity_sold = $item['quantity'];  // Quantity sold in this sale
+
+                // Fetch full product info by product_id
+                $product = $productModel->getById($product_id);
+                if ($product) {
+                    $new_stock = $product['quantity_in_stock'] + $quantity_sold;
+
+                    // Update product stock with all original details intact
+                    $productModel->update(
+                        $product_id,
+                        $product['name'],
+                        $product['category_id'],
+                        $product['unit_id'],
+                        $product['cost_price'],
+                        $product['selling_price'],
+                        $new_stock,
+                        $product['image_path'] ?? null,
+                        true  // skip logging
+                    );
+                }
+            }
+
+            // Void the sale transaction
             $result = $salesTransaction->voidTransaction($sale_id);
+
             if ($result) {
                 $_SESSION['success'] = 'Transaction voided successfully.';
             } else {
@@ -122,11 +151,21 @@ switch ($action) {
         }
         header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");
         exit;
+
+
+
     case 'top_products':
         $topProducts = $salesTransaction->getTopProducts();
         header('Content-Type: application/json');
         echo json_encode($topProducts);
         exit;
+
+    case 'sales_by_category':
+        $data = $salesTransaction->getSalesByCategory();
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        exit;
+
     default:
         // Optionally, list all sales or redirect
         header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");

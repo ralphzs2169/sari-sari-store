@@ -148,19 +148,9 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
                 <!-- Products Section -->
                 <?php include 'salesTransaction.php'; ?>
 
+
                 <?php include 'salesReport.php'; ?>
                 <?php include 'productInventory.php'; ?>
-
-
-                <!-- POS Section -->
-
-                <!-- Sales Section -->
-                <!-- <div id="sales" class="content-section">
-                    <div class="table-container">
-                        <h4><i class="fas fa-cash-register text-primary"></i> Sales Transactions</h4>
-                        <p class="text-muted">Sales transactions management will be implemented here.</p>
-                    </div>
-                </div> -->
 
             </div>
         </div>
