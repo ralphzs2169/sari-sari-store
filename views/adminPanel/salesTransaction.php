@@ -83,7 +83,7 @@
                     </select>
                 </div>
                 <div class="card p-3 shadow-sm">
-                    <canvas id="salesChart" height="90"></canvas>
+                    <canvas id="salesChart" height="300" style="min-height:300px;max-height:400px;width:100% !important;"></canvas>
                 </div>
             </div>
 
@@ -93,7 +93,7 @@
                     <h5 class="text-success mb-0 me-3"><i class="fas fa-chart-bar"></i> Top Products</h5>
                 </div>
                 <div class="card p-3 shadow-sm">
-                    <canvas id="topProductsChart" height="150"></canvas>
+                    <canvas id="topProductsChart" height="350" style="min-height:350px;max-height:500px;width:100% !important;"></canvas>
                 </div>
             </div>
 
@@ -166,6 +166,9 @@
         font-weight: 500;
     }
 </style>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
     // Group transactions by sale_id for easy lookup (each sale_id may have multiple items)
@@ -306,4 +309,83 @@
             }
         });
     }
+
+    // --- Top Products Chart (PHP to JS, no AJAX) ---
+    <?php
+    $topProductLabels = array_column($topProducts, 'name');
+    $topProductValues = array_map('intval', array_column($topProducts, 'total_units_sold'));
+    ?>
+    const topProductLabels = <?= json_encode($topProductLabels) ?>;
+    const topProductValues = <?= json_encode($topProductValues) ?>;
+    let topProductsChart;
+
+    function renderTopProductsChart(labels, data) {
+        const canvas = document.getElementById('topProductsChart');
+        if (!canvas) {
+            console.error('Top Products canvas not found!');
+            return;
+        }
+        const ctx = canvas.getContext('2d');
+        if (topProductsChart) topProductsChart.destroy();
+        topProductsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Units Sold',
+                    data: data,
+                    backgroundColor: 'rgba(25, 135, 84, 0.5)',
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8, // slightly more rounded
+                    maxBarThickness: 60 // wider bars
+                }]
+            },
+            options: {
+                indexAxis: 'y', // horizontal
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.parsed.x.toLocaleString()} units`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#198754',
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#198754',
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            var canvas = document.getElementById('topProductsChart');
+            if (canvas) {
+                renderTopProductsChart(topProductLabels, topProductValues);
+            }
+        }, 200);
+    });
 </script>
