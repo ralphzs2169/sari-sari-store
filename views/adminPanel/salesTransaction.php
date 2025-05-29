@@ -60,6 +60,43 @@
                         <?php endforeach; ?>
                 </tbody>
             </table>
+            <!-- Sales Analytics Chart Section -->
+            <div class="mt-4" id="sales-analytics-section">
+                <div class="d-flex flex-wrap align-items-center mb-3 gap-2">
+                    <h5 class="text-success mb-0 me-3"><i class="fas fa-chart-bar"></i> Sales Analytics</h5>
+                    <label class="form-label mb-0 me-2">Date Range:</label>
+                    <select id="salesChartRange" class="form-select form-select-sm w-auto me-2">
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="this_week">This Week</option>
+                        <option value="last_week">Last Week</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <input type="date" id="salesChartStart" class="form-control form-control-sm w-auto me-2 d-none">
+                    <span id="toLabel" class="mx-1 d-none">to</span>
+                    <input type="date" id="salesChartEnd" class="form-control form-control-sm w-auto me-2 d-none">
+                    <label class="form-label mb-0 me-2">Payment Method:</label>
+                    <select id="salesChartPayment" class="form-select form-select-sm w-auto">
+                        <option value="all">All</option>
+                        <option value="cash">Cash</option>
+                        <option value="gcash">GCash</option>
+                    </select>
+                </div>
+                <div class="card p-3 shadow-sm">
+                    <canvas id="salesChart" height="90"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Products Chart Section -->
+            <div class="mt-4" id="topProductsSection">
+                <div class="d-flex align-items-center mb-3 gap-2">
+                    <h5 class="text-success mb-0 me-3"><i class="fas fa-chart-bar"></i> Top Products</h5>
+                </div>
+                <div class="card p-3 shadow-sm">
+                    <canvas id="topProductsChart" height="150"></canvas>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -134,9 +171,18 @@
     // Group transactions by sale_id for easy lookup (each sale_id may have multiple items)
     const transactions = {};
     <?php foreach ($transactions as $row): ?>
-        if (!transactions['<?= $row['sale_id'] ?>']) transactions['<?= $row['sale_id'] ?>'] = [];
-        transactions['<?= $row['sale_id'] ?>'].push(<?= json_encode($row) ?>);
+        transactions['<?= $row['sale_id'] ?>'] = <?= json_encode([
+                                                        'sale_id' => $row['sale_id'],
+                                                        'username' => $row['username'],
+                                                        'sale_date' => $row['sale_date'],
+                                                        'total_amount' => $row['total_amount'],
+                                                        'payment_method' => $row['payment_method'],
+                                                        'status' => $row['status'],
+                                                        // Wrap items in square brackets to make valid JSON
+                                                        'items' => json_decode('[' . $row['items_json'] . ']')
+                                                    ]) ?>;
     <?php endforeach; ?>
+
 
     function formatDateTime(dateString) {
         const date = new Date(dateString.replace(' ', 'T'));
@@ -155,78 +201,84 @@
     }
 
     function viewTransactionDetails(saleId) {
-        var data = transactions[saleId];
-        if (!data || data.length === 0) {
+        var transaction = transactions[saleId];
+        if (!transaction || !transaction.items || transaction.items.length === 0) {
             document.getElementById('transaction-details-content').innerHTML = '<p>No details found.</p>';
             var modal = new bootstrap.Modal(document.getElementById('transactionDetailsModal'));
             modal.show();
             return;
         }
-        var header = data[0];
-        // Calculate total quantity
-        var totalQty = data.reduce((sum, item) => sum + parseInt(item.quantity), 0);
-        // Payment badge
+
+        var header = transaction; // ✅ Fix: this is the actual transaction object
+        var items = transaction.items; // ✅ Fix: extract items array
+        var totalQty = items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+
         var method = header.payment_method ? header.payment_method.toLowerCase() : '';
         var badgeClass = method === 'cash' ? 'bg-success' : (method === 'gcash' ? 'bg-primary' : 'bg-secondary');
         var methodLabel = method.charAt(0).toUpperCase() + method.slice(1);
         var isVoided = header.status && header.status.toLowerCase() === 'void';
         var voidBadge = isVoided ? '<span class="badge bg-danger">VOID</span>' : '';
+
         var html = `
-        <div class="row g-3 mb-3">
-            <div class="col-md-6">
-                <div class="border rounded p-3 h-100 bg-light">
-                    <div class="mb-2"><strong>Sale No.:</strong> ${header.sale_id} ${voidBadge}</div>
-                    <div class="mb-2"><strong>Admin:</strong> ${header.username}</div>
-                    <div><strong>Date:</strong> ${formatDateTime(header.sale_date)}</div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="border rounded p-3 h-100 bg-light">
-                    <div class="mb-2"><strong>Total Quantity:</strong> ${totalQty}</div>
-                    <div class="mb-2"><strong>Total Payment:</strong> ₱${parseFloat(header.total_amount).toFixed(2)}</div>
-                    <div><strong>Payment Method:</strong> <span class="badge ${badgeClass}">${methodLabel}</span></div>
-                </div>
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <div class="border rounded p-3 h-100 bg-light">
+                <div class="mb-2"><strong>Sale No.:</strong> ${header.sale_id} ${voidBadge}</div>
+                <div class="mb-2"><strong>Admin:</strong> ${header.username}</div>
+                <div><strong>Date:</strong> ${formatDateTime(header.sale_date)}</div>
             </div>
         </div>
-        <hr>
-        <h5>Items:</h5>
-        <div class="table-responsive" style="overflow-x:auto;">
-        <table class="table table-bordered mb-0" style="table-layout:fixed;">
-            <thead>
-                <tr>
-                    <th style="width:70px;">Image</th>
-                    <th style="min-width:120px;max-width:200px;">Product</th>
-                    <th style="width:60px;">Qty</th>
-                    <th style="width:90px;">Price</th>
-                    <th style="width:100px;">Subtotal</th>
-                </tr>
-            </thead>
-        </table>
-        <div style="max-height:270px; overflow-y:auto;">
-        <table class="table table-bordered mb-0" style="table-layout:fixed;">
-            <tbody>
-        `;
-        data.forEach(function(item) {
+        <div class="col-md-6">
+            <div class="border rounded p-3 h-100 bg-light">
+                <div class="mb-2"><strong>Total Quantity:</strong> ${totalQty}</div>
+                <div class="mb-2"><strong>Total Payment:</strong> ₱${parseFloat(header.total_amount).toFixed(2)}</div>
+                <div><strong>Payment Method:</strong> <span class="badge ${badgeClass}">${methodLabel}</span></div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <h5>Items:</h5>
+    <div class="table-responsive" style="overflow-x:auto;">
+    <table class="table table-bordered mb-0" style="table-layout:fixed;">
+        <thead>
+            <tr>
+                <th style="width:70px;">Image</th>
+                <th style="min-width:120px;max-width:200px;">Product</th>
+                <th style="width:60px;">Qty</th>
+                <th style="width:90px;">Price</th>
+                <th style="width:100px;">Subtotal</th>
+            </tr>
+        </thead>
+    </table>
+    <div style="max-height:270px; overflow-y:auto;">
+    <table class="table table-bordered mb-0" style="table-layout:fixed;">
+        <tbody>
+    `;
+
+        items.forEach(function(item) {
             html += `
-                <tr>
-                    <td style="width:70px;"><img src="${item.image_path}" style="width:60px;height:60px;object-fit:cover;" alt="${item.product_name}"></td>
-                    <td style="word-break:break-word;white-space:normal;min-width:120px;max-width:200px;">${item.product_name}</td>
-                    <td style="width:60px;">${item.quantity}</td>
-                    <td style="width:90px;">₱${parseFloat(item.price).toFixed(2)}</td>
-                    <td style="width:100px;">₱${parseFloat(item.subtotal).toFixed(2)}</td>
-                </tr>
-            `;
-        });
-        html += `
-            </tbody>
-        </table>
-        </div>
-        </div>
+            <tr>
+                <td style="width:70px;"><img src="${item.image_path}" style="width:60px;height:60px;object-fit:cover;" alt="${item.product_name}"></td>
+                <td style="word-break:break-word;white-space:normal;min-width:120px;max-width:200px;">${item.product_name}</td>
+                <td style="width:60px;">${item.quantity}</td>
+                <td style="width:90px;">₱${parseFloat(item.price).toFixed(2)}</td>
+                <td style="width:100px;">₱${parseFloat(item.subtotal).toFixed(2)}</td>
+            </tr>
         `;
+        });
+
+        html += `
+        </tbody>
+    </table>
+    </div>
+    </div>
+    `;
+
         document.getElementById('transaction-details-content').innerHTML = html;
         var modal = new bootstrap.Modal(document.getElementById('transactionDetailsModal'));
         modal.show();
     }
+
 
     function confirmDeleteTransaction(saleId) {
         Swal.fire({

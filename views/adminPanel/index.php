@@ -440,6 +440,186 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
         });
     </script>
 
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // --- Sales Chart Data Preparation (PHP to JS) ---
+        <?php
+        // Helper to get sales data for chart (grouped by date and payment method)
+        function getSalesChartData($transactions, $startDate, $endDate, $paymentMethod = 'all')
+        {
+            $data = [];
+            $date = clone $startDate;
+            while ($date <= $endDate) {
+                $key = $date->format('Y-m-d');
+                $data[$key] = 0;
+                $date->modify('+1 day');
+            }
+            foreach ($transactions as $t) {
+                $tDate = date('Y-m-d', strtotime($t['sale_date']));
+                $pm = strtolower($t['payment_method']);
+                if (isset($data[$tDate]) && ($paymentMethod === 'all' || $paymentMethod === $pm)) {
+                    $data[$tDate] += floatval($t['total_amount']);
+                }
+            }
+            return $data;
+        }
+        $today = new DateTime('today');
+        $yesterday = (clone $today)->modify('-1 day');
+        $startOfWeek = (clone $today)->modify('this week');
+        $endOfWeek = (clone $startOfWeek)->modify('+6 days');
+        $startOfLastWeek = (clone $startOfWeek)->modify('-7 days');
+        $endOfLastWeek = (clone $startOfLastWeek)->modify('+6 days');
+        // Prepare all datasets for each filter and payment method
+        $ranges = [
+            'today' => [$today, $today],
+            'yesterday' => [$yesterday, $yesterday],
+            'this_week' => [$startOfWeek, $endOfWeek],
+            'last_week' => [$startOfLastWeek, $endOfLastWeek],
+            'last_7_days' => [(clone $today)->modify('-6 days'), $today],
+        ];
+        $methods = ['all', 'cash', 'gcash'];
+        $chartData = [];
+        foreach ($ranges as $rangeKey => [$start, $end]) {
+            foreach ($methods as $method) {
+                $data = getSalesChartData($transactions, $start, $end, $method);
+                $chartData[$rangeKey][$method] = [
+                    'labels' => array_keys($data),
+                    'data' => array_values($data)
+                ];
+            }
+        }
+        ?>
+        // Pass PHP data to JS
+        const salesChartDataSets = <?= json_encode($chartData) ?>;
+        // --- End PHP to JS ---
+
+        // Chart.js initialization
+        let salesChart;
+
+        function renderSalesChart(labels, data) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if (salesChart) salesChart.destroy();
+            salesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Sales (₱)',
+                        data: data,
+                        backgroundColor: 'rgba(25, 135, 84, 0.5)',
+                        borderColor: 'rgba(25, 135, 84, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        maxBarThickness: 32
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `₱${ctx.parsed.y.toLocaleString()}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#198754',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#198754',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        // Initial render
+        $(document).ready(function() {
+            if ($('#salesChart').length) {
+                updateSalesChart();
+            }
+            // Date range filter logic
+            $('#salesChartRange').on('change', function() {
+                if (this.value === 'custom') {
+                    $('#salesChartStart, #salesChartEnd, #toLabel').removeClass('d-none');
+                } else {
+                    $('#salesChartStart, #salesChartEnd, #toLabel').addClass('d-none');
+                    updateSalesChart();
+                }
+            });
+            $('#salesChartStart, #salesChartEnd, #salesChartPayment').on('change', function() {
+                updateSalesChart();
+            });
+        });
+        // Update chart based on filters
+        function updateSalesChart() {
+            let range = $('#salesChartRange').val();
+            let method = $('#salesChartPayment').val();
+            if (range === 'custom') {
+                // Custom range: build labels and data from PHP $transactions
+                const start = $('#salesChartStart').val();
+                const end = $('#salesChartEnd').val();
+                if (!start || !end) return;
+                // Find all dates between start and end
+                let startDate = new Date(start);
+                let endDate = new Date(end);
+                let labels = [];
+                let data = [];
+                let dateMap = {};
+                let d = new Date(startDate);
+                while (d <= endDate) {
+                    let key = d.toISOString().slice(0, 10);
+                    labels.push(key);
+                    dateMap[key] = 0;
+                    d.setDate(d.getDate() + 1);
+                }
+                <?php
+                // Prepare all transactions as a JS array
+                $jsTx = [];
+                foreach ($transactions as $t) {
+                    $jsTx[] = [
+                        'date' => date('Y-m-d', strtotime($t['sale_date'])),
+                        'amount' => floatval($t['total_amount']),
+                        'method' => strtolower($t['payment_method'])
+                    ];
+                }
+                ?>
+                const allTx = <?= json_encode($jsTx) ?>;
+                for (const tx of allTx) {
+                    if (tx.date >= start && tx.date <= end && (method === 'all' || method === tx.method)) {
+                        dateMap[tx.date] += tx.amount;
+                    }
+                }
+                data = labels.map(l => dateMap[l]);
+                renderSalesChart(labels, data);
+            } else {
+                // Precomputed ranges
+                let key = range;
+                if (!salesChartDataSets[key]) key = 'last_7_days';
+                let m = method || 'all';
+                if (!salesChartDataSets[key][m]) m = 'all';
+                const labels = salesChartDataSets[key][m].labels;
+                const data = salesChartDataSets[key][m].data;
+                renderSalesChart(labels, data);
+            }
+        }
+    </script>
+
 </body>
 
 </html>

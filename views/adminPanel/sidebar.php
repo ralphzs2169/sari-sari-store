@@ -27,11 +27,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" data-section="customers">
-                    <i class="fas fa-users"></i> Customers
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link" href="#" data-section="settings">
                     <i class="fas fa-cog"></i> Settings
                 </a>
