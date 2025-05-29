@@ -85,4 +85,11 @@ class SalesTransactionModel
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getPaymentMethodBreakdown()
+    {
+        $stmt = $this->conn->prepare("CALL GetSalesByPaymentMethod");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

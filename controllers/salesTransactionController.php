@@ -166,6 +166,12 @@ switch ($action) {
         echo json_encode($data);
         exit;
 
+    case 'payment_method_breakdown':
+        $data = $salesTransaction->getPaymentMethodBreakdown();
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        exit;
+
     default:
         // Optionally, list all sales or redirect
         header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");

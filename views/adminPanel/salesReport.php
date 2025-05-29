@@ -159,7 +159,7 @@ foreach ($transactions as $t) {
     const salesTrendLabels = <?= json_encode($monthLabels) ?>;
     const salesTrendData = <?= json_encode(array_values($monthlySales)) ?>;
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
 
         // --- Sales Trend Over Time Chart ---
         const trendCanvas = document.getElementById('salesTrendChart');
@@ -219,47 +219,102 @@ foreach ($transactions as $t) {
         // --- Sales by Category Chart ---
         const categoryCanvas = document.getElementById('salesByCategoryChart');
         if (categoryCanvas) {
-            fetch('/sari-sari-store/controllers/salesTransactionController.php?action=sales_by_category')
-                .then(response => response.json())
-                .then(data => {
-                    const labels = data.map(item => item.category);
-                    const sales = data.map(item => parseFloat(item.total_sales));
-                    const ctx = categoryCanvas.getContext('2d');
-                    new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Sales by Category',
-                                data: sales,
-                                backgroundColor: [
-                                    '#198754', '#0d6efd', '#ffc107', '#dc3545',
-                                    '#6610f2', '#20c997', '#fd7e14', '#6c757d'
-                                ],
-                                borderWidth: 2
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        color: '#333',
-                                        font: {
-                                            weight: 'bold'
-                                        }
+            try {
+                const response = await fetch('/sari-sari-store/controllers/salesTransactionController.php?action=sales_by_category');
+                const data = await response.json();
+
+                const labels = data.map(item => item.category);
+                const sales = data.map(item => parseFloat(item.total_sales));
+                const ctx = categoryCanvas.getContext('2d');
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Sales by Category',
+                            data: sales,
+                            backgroundColor: [
+                                '#198754', '#0d6efd', '#ffc107', '#dc3545',
+                                '#6610f2', '#20c997', '#fd7e14', '#6c757d'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#333',
+                                    font: {
+                                        weight: 'bold'
                                     }
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: ctx => `${ctx.label}: ₱${ctx.parsed.toLocaleString()}`
-                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `${ctx.label}: ₱${ctx.parsed.toLocaleString()}`
                                 }
                             }
                         }
-                    });
+                    }
                 });
+            } catch (error) {
+                console.error('Error loading category sales data:', error);
+            }
         }
+
+        // --- Payment Method Breakdown Chart ---
+        const paymentMethodCanvas = document.getElementById('paymentMethodChart');
+        if (paymentMethodCanvas) {
+            try {
+                const response = await fetch('/sari-sari-store/controllers/salesTransactionController.php?action=payment_method_breakdown');
+                const data = await response.json();
+
+                const filtered = data.filter(item => item.payment_method && !isNaN(parseFloat(item.total_sales)));
+                const labels = filtered.map(item => item.payment_method.charAt(0).toUpperCase() + item.payment_method.slice(1));
+                const sales = filtered.map(item => parseFloat(item.total_sales));
+                const ctx = paymentMethodCanvas.getContext('2d');
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Payment Method Breakdown',
+                            data: sales,
+                            backgroundColor: [
+                                '#198754', '#0d6efd'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#333',
+                                    font: {
+                                        weight: 'bold'
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `${ctx.label}: ₱${ctx.parsed.toLocaleString()}`
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading payment method data:', error);
+            }
+        }
+
     });
 </script>
