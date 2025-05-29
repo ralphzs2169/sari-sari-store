@@ -64,6 +64,7 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="/sari-sari-store/assets/datatables/css/datatables.css">
     <link rel="stylesheet" href="/sari-sari-store/assets/datatables/css/datatables.min.css">
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         /* Content section visibility rules */
@@ -145,6 +146,7 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
                 <?php include 'pos.php'; ?>
                 <!-- Products Section -->
                 <?php include 'salesTransaction.php'; ?>
+
                 <?php include 'productInventory.php'; ?>
 
 
@@ -286,7 +288,76 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
                 pageLength: 5,
                 ordering: false
             });
-        }); // Global navigation function
+            // DataTables for salesTable
+            if ($('#salesTable').length) {
+                // Insert the status filter above the table for guaranteed visibility
+                if (!$('#salesStatusFilterContainer').length) {
+                    $('#salesTable').before(`
+                        <div class="d-flex justify-content-end align-items-center mb-2" id="salesStatusFilterContainer">
+                            <label class="form-label me-2 mb-0 fw-semibold text-success">Status:</label>
+                            <select id="salesStatusFilter" class="form-select form-select-sm w-auto border-success">
+                                <option value="">All</option>
+                                <option value="active">Active</option>
+                                <option value="void">Void</option>
+                            </select>
+                        </div>
+                    `);
+                }
+                var salesTable = $('#salesTable').DataTable({
+                    pageLength: 7,
+                    lengthMenu: [7, 10, 25, 50],
+                    language: {
+                        search: '',
+                        searchPlaceholder: 'Search transactions...',
+                        lengthMenu: 'Show _MENU_ entries',
+                        info: 'Showing _START_ to _END_ of _TOTAL_ transactions',
+                        paginate: {
+                            previous: '<i class="fas fa-chevron-left"></i>',
+                            next: '<i class="fas fa-chevron-right"></i>'
+                        }
+                    },
+                    dom: '<"row mb-2 align-items-center"<"col-sm-6"l><"col-sm-6 text-end d-flex flex-row justify-content-end align-items-center"f>>rt<"row mt-2"<"col-sm-6"i><"col-sm-6"p>>',
+                    order: [
+                        [2, 'desc']
+                    ],
+                    columnDefs: [{
+                            orderable: false,
+                            targets: -1
+                        }, // Actions column not orderable
+                        {
+                            orderable: false,
+                            targets: 0
+                        } // No. column not orderable
+                    ],
+                    stripeClasses: ['table-light', 'table-white'],
+                    className: 'table table-hover table-striped table-bordered align-middle'
+                });
+                // Style DataTables search box
+                $('.dataTables_filter input').addClass('form-control form-control-sm d-inline-block border-success').css({
+                    'width': 'auto',
+                    'margin-left': '0.5em'
+                });
+                // Style DataTables length select
+                $('.dataTables_length select').addClass('form-select form-select-sm d-inline-block border-success').css({
+                    'width': 'auto',
+                    'margin-right': '0.5em'
+                });
+                // Style DataTables info
+                $('.dataTables_info').addClass('text-success fw-semibold');
+                // Style DataTables pagination
+                $('.dataTables_paginate .paginate_button').addClass('shadow-sm border-success');
+                // Status filter logic
+                $(document).off('change', '#salesStatusFilter').on('change', '#salesStatusFilter', function() {
+                    var val = this.value;
+                    if (val) {
+                        salesTable.column(5).search(val, true, false).draw();
+                    } else {
+                        salesTable.column(5).search('', true, false).draw();
+                    }
+                });
+            }
+        });
+        // Global navigation function
         window.navigateToSection = function(sectionId) {
             console.log('Navigating to section:', sectionId);
 

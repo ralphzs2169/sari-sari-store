@@ -28,7 +28,7 @@ switch ($action) {
         $payment_method = $_POST['payment_method'] ?? 'cash';
         $cart = isset($_POST['cart']) ? json_decode($_POST['cart'], true) : [];
         if ($admin_id > 0 && $total_amount > 0) {
-            $sale_id = $salesTransaction->create($customer_id, $admin_id, $total_amount, $payment_method);
+            $sale_id = $salesTransaction->create($admin_id, $total_amount, $payment_method);
 
             $productNames = [];
             foreach ($cart as $item) {
@@ -108,6 +108,20 @@ switch ($action) {
         }
         break;
 
+    case 'void':
+        $sale_id = intval($_POST['sale_id'] ?? 0);
+        if ($sale_id > 0) {
+            $result = $salesTransaction->voidTransaction($sale_id);
+            if ($result) {
+                $_SESSION['success'] = 'Transaction voided successfully.';
+            } else {
+                $_SESSION['error'] = 'Failed to void transaction.';
+            }
+        } else {
+            $_SESSION['error'] = 'Invalid sale ID.';
+        }
+        header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");
+        exit;
     default:
         // Optionally, list all sales or redirect
         header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");

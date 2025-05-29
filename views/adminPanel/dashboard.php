@@ -29,7 +29,6 @@
                 <div class="stats-icon" style="background: linear-gradient(135deg, #27ae60, #229954);">
                     <i class="fas fa-peso-sign"></i>
                 </div>
-
                 <h3 class="stats-number text-success">₱<?= number_format($totalSales, 2) ?></h3>
                 <p class="stats-label">Today's Sales</p>
             </div>
@@ -175,18 +174,17 @@
                         <!-- inside your foreach loop -->
                         <?php
                         foreach ($activityLogs as $log) {
-                            // Use the timeAgo function here:
                             $createdAtAgo = timeAgo($log['created_at']);
-
                             $activityTitle = ucwords(str_replace('_', ' ', $log['activity_type']));
                             $description = htmlspecialchars($log['description']);
-                            $createdAtEscaped = htmlspecialchars($createdAtAgo);
+                            $shortDescription = mb_strlen($description) > 70 ? mb_substr($description, 0, 70) . "..." : $description;
 
-                            echo "<tr>";
-                            echo "<td><strong>{$activityTitle}</strong><br><small class='text-muted'>{$description}</small></td>";
-                            echo "<td><span class='activity-time'>{$createdAtEscaped}</span></td>";
+                            echo "<tr class='activity-row' data-full-desc=\"{$description}\">";
+                            echo "<td><strong>{$activityTitle}</strong><br><small class='text-muted activity-desc'>{$shortDescription}</small></td>";
+                            echo "<td><span class='activity-time'>{$createdAtAgo}</span></td>";
                             echo "</tr>";
                         }
+
                         ?>
 
                     </tbody>
@@ -198,3 +196,21 @@
 
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const rows = document.querySelectorAll('.activity-row');
+
+        rows.forEach(row => {
+            row.addEventListener('click', () => {
+                const descEl = row.querySelector('.activity-desc');
+                const full = row.getAttribute('data-full-desc');
+
+                if (descEl.textContent.length > 70 && descEl.textContent.endsWith("...")) {
+                    descEl.textContent = full;
+                } else {
+                    descEl.textContent = full.length > 100 ? full.slice(0, 70) + "..." : full;
+                }
+            });
+        });
+    });
+</script>

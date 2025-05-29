@@ -1,4 +1,4 @@
-<div class="col-lg-2 col-md-3">
+<div class="col-lg-2 col-md-3 position-fixed">
     <div class="sidebar-nav">
         <ul class="nav nav-pills flex-column">
             <li class="nav-item">

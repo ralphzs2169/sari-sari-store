@@ -11,10 +11,10 @@ class SalesTransactionModel
         $this->conn = $db->getConnection();
     }
 
-    public function create($customer_id, $admin_id, $total_amount, $payment_method = 'cash')
+    public function create($admin_id, $total_amount, $payment_method = 'cash')
     {
-        $stmt = $this->conn->prepare("CALL CreateTransaction(:customer_id, :admin_id, :total_amount, :payment_method, @sale_id)");
-        $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
+        error_log("ADMIN ID: " . $admin_id);
+        $stmt = $this->conn->prepare("CALL CreateTransaction(:admin_id, :total_amount, :payment_method, @sale_id)");
         $stmt->bindParam(':admin_id', $admin_id, PDO::PARAM_INT);
         $stmt->bindParam(':total_amount', $total_amount);
         $stmt->bindParam(':payment_method', $payment_method);
@@ -62,5 +62,12 @@ class SalesTransactionModel
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? intval($row['total']) : 0;
+    }
+
+    public function voidTransaction($sale_id)
+    {
+        $stmt = $this->conn->prepare("CALL VoidTransaction(:sale_id)");
+        $stmt->bindParam(':sale_id', $sale_id, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 }

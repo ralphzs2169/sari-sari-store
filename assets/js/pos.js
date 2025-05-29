@@ -185,7 +185,7 @@ function processPayment() {
         return;
     }
 
-    // Create a hidden form and submit to backend (no AJAX)
+    // Create a hidden form and submit to backend 
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = '/sari-sari-store/controllers/salesTransactionController.php?action=create';

@@ -147,12 +147,25 @@ body {
     color: #6c757d;
 }
 
+.activity-row {
+    cursor: pointer;
+}
+.activity-row:hover {
+    background-color: #f8f9fa;
+}
 .sidebar-nav {
     background: white;
-    border-radius: 15px;
+    border-radius: 0 15px 15px 0;
     padding: 1rem;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-    margin-bottom: 2rem;
+    position: fixed;
+    top: 56px; /* Height of navbar */
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+    z-index: 1000;
+    width: inherit;
+    max-width: inherit;
 }
 
 .nav-item {
@@ -261,6 +274,36 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
 }
 
+/* Main content offset for fixed sidebar */
+@media (min-width: 768px) {
+    .col-md-9 {
+        margin-left: 25%;
+    }
+}
+@media (min-width: 992px) {
+    .col-md-9 {
+        margin-left: 16.666667%;
+    }
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
 @media (max-width: 768px) {
     .stats-card {
         margin-bottom: 1rem;
@@ -269,4 +312,21 @@ body {
     .welcome-section {
         padding: 1.5rem;
     }
+}
+
+/* Ensure modals are above everything, including the POS search bar */
+.modal,
+.modal-backdrop {
+    z-index: 1300 !important;
+}
+.modal.show {
+    z-index: 1350 !important;
+}
+.modal-backdrop.show {
+    z-index: 1340 !important;
+}
+
+/* POS search bar should be below modals */
+.pos-search-filter-bar {
+    z-index: 1050 !important;
 }

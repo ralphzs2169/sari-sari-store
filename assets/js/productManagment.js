@@ -1,7 +1,7 @@
 console.log("Global products data:", typeof products, products);
 
 $(document).ready(function() {
-        $('#categoryTable, #unitTable, #productTable').DataTable({
+        $('#categoryTable, #unitTable, #productTable, #salesTable').DataTable({
             paging: true,
             searching: true,
             pageLength: 5
