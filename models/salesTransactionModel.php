@@ -70,4 +70,11 @@ class SalesTransactionModel
         $stmt->bindParam(':sale_id', $sale_id, PDO::PARAM_INT);
         return $stmt->execute();
     }
+
+    public function getTopProducts()
+    {
+        $stmt = $this->conn->prepare("CALL GetTopProducts()");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

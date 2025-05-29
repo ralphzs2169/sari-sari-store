@@ -122,6 +122,11 @@ switch ($action) {
         }
         header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");
         exit;
+    case 'top_products':
+        $topProducts = $salesTransaction->getTopProducts();
+        header('Content-Type: application/json');
+        echo json_encode($topProducts);
+        exit;
     default:
         // Optionally, list all sales or redirect
         header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");

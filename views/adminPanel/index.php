@@ -32,6 +32,8 @@ $productCounts = $productModel->GetProductCounts();
 
 $salesModel = new SalesTransactionModel();
 $transactions = $salesModel->getAll();
+$topProducts = $salesModel->getTopProducts();
+echo print_r($topProducts);
 $totalSales = $salesModel->getTodaySalesTotal();
 $todayTransactionCount = $salesModel->countTodayTransactions();
 
