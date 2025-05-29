@@ -172,6 +172,15 @@ switch ($action) {
         echo json_encode($data);
         exit;
 
+    case 'profit_performance':
+        $range = $_GET['range'] ?? 'monthly';
+        $start = $_GET['start'] ?? null;
+        $end = $_GET['end'] ?? null;
+        $data = $salesTransaction->getProfitPerformance($range, $start, $end);
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        exit;
+
     default:
         // Optionally, list all sales or redirect
         header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");

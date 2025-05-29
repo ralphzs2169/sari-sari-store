@@ -90,7 +90,10 @@
         <div class="row mb-4">
             <div class="col-lg-6 mb-3">
                 <div class="card p-3 shadow-sm h-100">
-                    <h6 class="mb-3 text-success"><i class="fas fa-percent"></i> Profit Margin by Product</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0 text-success"><i class="fas fa-percent"></i> Profit Performance</h6>
+                        <span id="profitPerformanceTotal" class="fw-bold text-success" style="font-size:1.1em"></span>
+                    </div>
                     <canvas id="profitMarginChart" height="220"></canvas>
                 </div>
             </div>
@@ -155,6 +158,8 @@ foreach ($transactions as $t) {
 }
 ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <script>
     const salesTrendLabels = <?= json_encode($monthLabels) ?>;
     const salesTrendData = <?= json_encode(array_values($monthlySales)) ?>;
@@ -314,6 +319,151 @@ foreach ($transactions as $t) {
             } catch (error) {
                 console.error('Error loading payment method data:', error);
             }
+        }
+
+        // --- Profit Performance Chart (Simple Bar, Customizable) ---
+        const profitPerformanceCanvas = document.getElementById('profitMarginChart');
+        if (profitPerformanceCanvas) {
+            // Add filter controls if not already present
+            let filterDiv = document.getElementById('profitPerformanceFilterContainer');
+            if (!filterDiv) {
+                filterDiv = document.createElement('div');
+                filterDiv.id = 'profitPerformanceFilterContainer';
+                filterDiv.className = 'mb-2';
+                profitPerformanceCanvas.parentNode.insertBefore(filterDiv, profitPerformanceCanvas);
+            }
+            filterDiv.innerHTML = `
+                <label class="form-label me-2">View Profit:</label>
+                <select id="profitPerformanceRange" class="form-select form-select-sm w-auto d-inline-block me-2">
+                    <option value="weekly" selected>This Week</option>
+                    <option value="monthly">This Month</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+                <input type="date" id="profitStartDate" class="form-control form-control-sm d-inline-block me-2" style="width:auto;display:none;">
+                <span id="profitToLabel" class="mx-1 d-none">to</span>
+                <input type="date" id="profitEndDate" class="form-control form-control-sm d-inline-block" style="width:auto;display:none;">
+            `;
+
+            let profitPerformanceChart;
+            async function renderProfitPerformanceChart(range = 'weekly', start = '', end = '') {
+                let url = `/sari-sari-store/controllers/salesTransactionController.php?action=profit_performance&range=${range}`;
+                if (range === 'custom' && start && end) {
+                    url += `&start=${start}&end=${end}`;
+                }
+                const response = await fetch(url);
+                const data = await response.json();
+                const labels = data.map(item => item.label);
+                const profits = data.map(item => parseFloat(item.profit));
+                // Calculate total
+                const total = profits.reduce((a, b) => a + b, 0);
+                let totalLabel = '';
+                if (range === 'weekly') totalLabel = `Weekly Total: ₱${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+                else if (range === 'monthly') totalLabel = `Monthly Total: ₱${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+                else totalLabel = `Total: ₱${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+                document.getElementById('profitPerformanceTotal').textContent = totalLabel;
+                if (profitPerformanceChart) profitPerformanceChart.destroy();
+                const ctx = profitPerformanceCanvas.getContext('2d');
+                profitPerformanceChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Profit (₱)',
+                            data: profits,
+                            backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                            borderColor: 'rgba(25, 135, 84, 1)',
+                            borderWidth: 2,
+                            maxBarThickness: 60
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            zoom: {
+                                pan: {
+                                    enabled: true,
+                                    mode: 'x'
+                                },
+                                zoom: {
+                                    wheel: {
+                                        enabled: true
+                                    },
+                                    pinch: {
+                                        enabled: true
+                                    },
+                                    mode: 'x'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `₱${ctx.parsed.y ? ctx.parsed.y.toLocaleString() : 0}`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Period'
+                                },
+                                ticks: {
+                                    color: '#198754',
+                                    font: {
+                                        weight: 'bold'
+                                    },
+                                    autoSkip: false,
+                                    maxRotation: 0,
+                                    minRotation: 0
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Profit (₱)'
+                                },
+                                ticks: {
+                                    color: '#198754',
+                                    font: {
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            // Initial render
+            renderProfitPerformanceChart('weekly');
+            const rangeSelect = document.getElementById('profitPerformanceRange');
+            const startInput = document.getElementById('profitStartDate');
+            const endInput = document.getElementById('profitEndDate');
+            const toLabel = document.getElementById('profitToLabel');
+            rangeSelect.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    startInput.style.display = '';
+                    endInput.style.display = '';
+                    toLabel.classList.remove('d-none');
+                } else {
+                    startInput.style.display = 'none';
+                    endInput.style.display = 'none';
+                    toLabel.classList.add('d-none');
+                    renderProfitPerformanceChart(this.value);
+                }
+            });
+            startInput.addEventListener('change', function() {
+                if (rangeSelect.value === 'custom' && startInput.value && endInput.value) {
+                    renderProfitPerformanceChart('custom', startInput.value, endInput.value);
+                }
+            });
+            endInput.addEventListener('change', function() {
+                if (rangeSelect.value === 'custom' && startInput.value && endInput.value) {
+                    renderProfitPerformanceChart('custom', startInput.value, endInput.value);
+                }
+            });
         }
 
     });
