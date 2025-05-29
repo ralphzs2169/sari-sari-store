@@ -1,4 +1,4 @@
-    <div id="products" class="content-section">
+<div id="products" class="content-section">
         <!-- Tabs for Products, Categories, and Units -->
         <ul class="nav nav-tabs mb-3" id="productTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -14,7 +14,7 @@
 
         <div class="tab-content" id="productTabContent">
             <!-- Products Tab -->
-            <div class="tab-pane fade show active" id="products-pane" role="tabpanel" aria-labelledby="products-tab">
+            <div class="tab-pane fade show active" id="products-pane" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4><i class="fas fa-box text-primary"></i> Product Inventory</h4>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
@@ -22,21 +22,21 @@
                     </button>
                 </div>
 
-                <div class="table-responsive">
-                    <table id="productTable" class="table table-hover table-striped">
-                        <thead class="table-light">
+                <div class="datatable-container">
+                    <table id="productTable" class="table table-hover datatable-custom">
+                        <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Product Name</th>
-                                <th>Category</th>
-                                <th>Unit</th>
-                                <th>Price per Unit</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th width="5%">ID</th>
+                                <th width="20%">Product Name</th>
+                                <th width="15%">Category</th>
+                                <th width="10%">Unit</th>
+                                <th width="15%">Price per Unit</th>
+                                <th width="10%">Stock</th>
+                                <th width="10%">Status</th>
+                                <th width="15%">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="productsTableBody">
+                        <tbody>
                             <?php
                             $counter = 1;
                             foreach ($products as $product):
@@ -91,15 +91,15 @@
                     </button>
                 </div>
 
-                <div class="table-responsive">
-                    <table id="categoryTable" class="table table-hover table-striped">
-                        <thead class="table-light">
+                <div class="datatable-container">
+                    <table id="categoryTable" class="table table-hover datatable-custom">
+                        <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Category Name</th>
-                                <th>Description</th>
-                                <th>Product Count</th>
-                                <th>Actions</th>
+                                <th width="10%">ID</th>
+                                <th width="25%">Category Name</th>
+                                <th width="35%">Description</th>
+                                <th width="15%">Count</th>
+                                <th width="15%">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="categoriesTableBody">

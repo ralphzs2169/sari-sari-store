@@ -83,11 +83,11 @@ switch ($action) {
             }
             $_SESSION['success'] = "Sale transaction recorded successfully.";
             // Optionally clear cart in session or show receipt
-            header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");
+            header("Location: /sari-sari-store/views/adminPanel/index.php?section=pos");
             exit;
         } else {
             $_SESSION['sales_error'] = "Invalid sale data.";
-            header("Location: /sari-sari-store/views/adminPanel/index.php?section=sales");
+            header("Location: /sari-sari-store/views/adminPanel/index.php?section=pos");
             exit;
         }
         break;

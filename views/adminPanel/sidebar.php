@@ -26,11 +26,6 @@
                     <i class="fas fa-chart-line"></i> Sales Reports
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" data-section="settings">
-                    <i class="fas fa-cog"></i> Settings
-                </a>
-            </li>
         </ul>
     </div>
 </div>
