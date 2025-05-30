@@ -32,9 +32,11 @@ $productCounts = $productModel->GetProductCounts();
 
 $salesModel = new SalesTransactionModel();
 $transactions = $salesModel->getAll();
+
 $topProducts = $salesModel->getTopProducts();
 $totalSales = $salesModel->getTodaySalesTotal();
 $todayTransactionCount = $salesModel->countTodayTransactions();
+
 
 $totalProductCount = $productCounts[0]['total_products'];
 $totalLowStockCount = $productCounts[0]['low_stock_products'];
@@ -79,6 +81,41 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
         .col-lg-10.col-md-9 {
             position: relative;
         }
+
+        .modern-navbar {
+            background: #fff !important;
+            border-bottom: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(44, 90, 160, 0.04);
+            min-height: 60px;
+        }
+
+        .modern-navbar .navbar-brand {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-color) !important;
+        }
+
+        .modern-navbar .btn-primary {
+            background: var(--primary-color);
+            border: none;
+        }
+
+        .modern-navbar .btn-outline-secondary {
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+        }
+
+        body.dark-theme .modern-navbar {
+            background: #232a36 !important;
+            color: #e9ecef;
+            border-bottom: 1px solid #232a36;
+        }
+
+        body.dark-theme .modern-navbar .navbar-brand {
+            color: #e9ecef !important;
+        }
     </style>
 </head>
 
@@ -114,23 +151,33 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
 
     <!-- Navigation Header -->
 
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top modern-navbar">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-store"></i> JRJ Sari-Sari Store
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="fas fa-store fa-lg text-primary me-2"></i>
+                <span class="fw-bold text-primary">JRJ Sari-Sari Store</span>
             </a>
-
-            <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
-                <span class="navbar-text me-3">
-                    <i class="fas fa-user-circle"></i> Welcome, <?php echo htmlspecialchars($_SESSION['admin_username'] ?? 'Admin'); ?>!
+            <div class="d-flex align-items-center ms-auto">
+                <span class="navbar-text me-3 d-none d-md-inline">
+                    <i class="fas fa-user-circle"></i> Welcome, <?php echo htmlspecialchars($_SESSION['admin_username'] ?? 'Admin'); ?>
                 </span>
-                <a class="btn btn-outline-light btn-sm" href="/sari-sari-store/controllers/adminController.php?action=logout">
-                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                <button class="btn btn-outline-secondary btn-sm me-2 d-none d-md-inline" id="headerThemeToggle"
+                    title="Toggle Light/Dark">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a class="btn btn-primary btn-sm" href="/sari-sari-store/controllers/adminController.php?action=logout">
+                    <i class="fas fa-sign-out-alt"></i> <span class="d-none d-md-inline">Sign Out</span>
                 </a>
-
             </div>
         </div>
     </nav>
+    <script>
+        // Header theme toggle
+        document.getElementById('headerThemeToggle')?.addEventListener('click', function() {
+            document.body.classList.toggle('dark-theme');
+        });
+    </script>
+
 
     <div class="container-fluid mt-4">
         <div class="row">
@@ -164,7 +211,8 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form enctype="multipart/form-data" action="/sari-sari-store/controllers/productController.php?action=create" method="post" class="container mt-3">
+                    <form enctype="multipart/form-data" action="/sari-sari-store/controllers/productController.php?action=create"
+                        method="post" class="container mt-3">
 
                         <div class="row mb-3">
                             <!-- Product Name - full width -->
@@ -175,7 +223,8 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
                         </div>
                         <div class="mb-3">
                             <label for="productImage" class="form-label">Product Image</label>
-                            <input class="form-control" type="file" id="productImage" name="product_image" accept="image/*">
+                            <input class="form-control" type="file" id="productImage" name="product_image"
+                                accept="image/*">
                         </div>
 
                         <div class="row mb-3">
@@ -250,7 +299,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
     <script src="/sari-sari-store/assets/js/productManagment.js"></script>
     <script src="/sari-sari-store/assets/js/pos.js"></script>
     <script>
-        // Initialize DataTables
         $(document).ready(function() {
             $('#activityTable').DataTable({
                 paging: true,
@@ -260,75 +308,87 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['category_error']);
                 pageLength: 5,
                 ordering: false
             });
-            // DataTables for salesTable
+
             if ($('#salesTable').length) {
-                // Insert the status filter above the table for guaranteed visibility
                 if (!$('#salesStatusFilterContainer').length) {
                     $('#salesTable').before(`
-                        <div class="d-flex justify-content-end align-items-center mb-2" id="salesStatusFilterContainer">
-                            <label class="form-label me-2 mb-0 fw-semibold text-success">Status:</label>
-                            <select id="salesStatusFilter" class="form-select form-select-sm w-auto border-success">
-                                <option value="">All</option>
-                                <option value="active">Active</option>
-                                <option value="void">Void</option>
-                            </select>
-                        </div>
-                    `);
+                <div class="d-flex justify-content-end align-items-center mb-2" id="salesStatusFilterContainer">
+                    <label class="form-label me-2 mb-0 fw-semibold text-success">Status:</label>
+                    <select id="salesStatusFilter" class="form-select form-select-sm w-auto border-success">
+                        <option value="" selected>All</option>
+                        <option value="active">Active</option>
+                        <option value="void">Void</option>
+                    </select>
+                </div>
+            `);
                 }
-                var salesTable = $('#salesTable').DataTable({
-                    pageLength: 7,
-                    lengthMenu: [7, 10, 25, 50],
-                    language: {
-                        search: '',
-                        searchPlaceholder: 'Search transactions...',
-                        lengthMenu: 'Show _MENU_ entries',
-                        info: 'Showing _START_ to _END_ of _TOTAL_ transactions',
-                        paginate: {
-                            previous: '<i class="fas fa-chevron-left"></i>',
-                            next: '<i class="fas fa-chevron-right"></i>'
+
+                if (!$.fn.DataTable.isDataTable('#salesTable')) {
+                    const statusColIndex = $('#salesTable thead th').filter(function() {
+                        return $(this).text().trim().toLowerCase() === 'status';
+                    }).index();
+
+                    const salesTable = $('#salesTable').DataTable({
+                        pageLength: 7,
+                        lengthMenu: [7, 10, 25, 50],
+                        language: {
+                            search: '',
+                            searchPlaceholder: 'Search transactions...',
+                            lengthMenu: 'Show _MENU_ entries',
+                            info: 'Showing _START_ to _END_ of _TOTAL_ transactions',
+                            paginate: {
+                                previous: '<i class="fas fa-chevron-left"></i>',
+                                next: '<i class="fas fa-chevron-right"></i>'
+                            }
+                        },
+                        dom: '<"row mb-2 align-items-center"<"col-sm-6"l><"col-sm-6 text-end d-flex flex-row justify-content-end align-items-center"f>>rt<"row mt-2"<"col-sm-6"i><"col-sm-6"p>>',
+                        order: [
+                            [2, 'desc']
+                        ],
+                        columnDefs: [{
+                                orderable: false,
+                                targets: -1
+                            },
+                            {
+                                orderable: false,
+                                targets: 0
+                            }
+                        ],
+                        stripeClasses: ['table-light', 'table-white'],
+                        className: 'table table-hover table-striped table-bordered align-middle'
+                    });
+
+                    // Start with showing all
+                    salesTable.column(statusColIndex).search('', false, false).draw();
+                    $('#salesStatusFilter').val('');
+
+                    $('.dataTables_filter input').addClass('form-control form-control-sm d-inline-block border-success').css({
+                        'width': 'auto',
+                        'margin-left': '0.5em'
+                    });
+
+                    $('.dataTables_length select').addClass('form-select form-select-sm d-inline-block border-success').css({
+                        'width': 'auto',
+                        'margin-right': '0.5em'
+                    });
+
+                    $('.dataTables_info').addClass('text-success fw-semibold');
+                    $('.dataTables_paginate .paginate_button').addClass('shadow-sm border-success');
+
+                    // Status filter
+                    $(document).off('change', '#salesStatusFilter').on('change', '#salesStatusFilter', function() {
+                        let val = $(this).val();
+                        if (val) {
+                            let searchVal = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+                            salesTable.column(statusColIndex).search(searchVal, false, false).draw();
+                        } else {
+                            salesTable.column(statusColIndex).search('', false, false).draw();
                         }
-                    },
-                    dom: '<"row mb-2 align-items-center"<"col-sm-6"l><"col-sm-6 text-end d-flex flex-row justify-content-end align-items-center"f>>rt<"row mt-2"<"col-sm-6"i><"col-sm-6"p>>',
-                    order: [
-                        [2, 'desc']
-                    ],
-                    columnDefs: [{
-                            orderable: false,
-                            targets: -1
-                        }, // Actions column not orderable
-                        {
-                            orderable: false,
-                            targets: 0
-                        } // No. column not orderable
-                    ],
-                    stripeClasses: ['table-light', 'table-white'],
-                    className: 'table table-hover table-striped table-bordered align-middle'
-                });
-                // Style DataTables search box
-                $('.dataTables_filter input').addClass('form-control form-control-sm d-inline-block border-success').css({
-                    'width': 'auto',
-                    'margin-left': '0.5em'
-                });
-                // Style DataTables length select
-                $('.dataTables_length select').addClass('form-select form-select-sm d-inline-block border-success').css({
-                    'width': 'auto',
-                    'margin-right': '0.5em'
-                });
-                // Style DataTables info
-                $('.dataTables_info').addClass('text-success fw-semibold');
-                // Style DataTables pagination
-                $('.dataTables_paginate .paginate_button').addClass('shadow-sm border-success');
-                // Status filter logic
-                $(document).off('change', '#salesStatusFilter').on('change', '#salesStatusFilter', function() {
-                    var val = this.value;
-                    if (val) {
-                        salesTable.column(5).search(val, true, false).draw();
-                    } else {
-                        salesTable.column(5).search('', true, false).draw();
-                    }
-                });
+                    });
+                }
             }
         });
+
         // Global navigation function
         window.navigateToSection = function(sectionId) {
             console.log('Navigating to section:', sectionId);

@@ -466,5 +466,74 @@ foreach ($transactions as $t) {
             });
         }
 
+        // --- Sales by Cashier Chart ---
+        const cashierCanvas = document.getElementById('salesByCashierChart');
+        if (cashierCanvas) {
+            try {
+                const response = await fetch('/sari-sari-store/controllers/salesTransactionController.php?action=sales_by_cashier');
+                const data = await response.json();
+                const labels = data.map(item => item.cashier);
+                const sales = data.map(item => parseFloat(item.total_sales));
+                const ctx = cashierCanvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Sales by Cashier',
+                            data: sales,
+                            backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                            borderColor: 'rgba(13, 110, 253, 1)',
+                            borderWidth: 2,
+                            maxBarThickness: 60
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `₱${ctx.parsed.x ? ctx.parsed.x.toLocaleString() : ctx.parsed.y.toLocaleString()}`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Sales (₱)'
+                                },
+                                ticks: {
+                                    color: '#0d6efd',
+                                    font: {
+                                        weight: 'bold'
+                                    }
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Cashier'
+                                },
+                                ticks: {
+                                    color: '#0d6efd',
+                                    font: {
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading cashier sales data:', error);
+            }
+        }
+
     });
 </script>

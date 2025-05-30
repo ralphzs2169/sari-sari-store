@@ -94,7 +94,7 @@ class SalesTransactionModel
 
     public function getProfitPerformance($range = 'weekly', $start = null, $end = null)
     {
-        $stmt = $this->conn->prepare("CALL get_profit_performance(:range, :start, :end)");
+        $stmt = $this->conn->prepare("CALL GetProfitPerformance(:range, :start, :end)");
         $stmt->bindParam(':range', $range, PDO::PARAM_STR);
         $stmt->bindParam(':start', $start);  // Will be NULL for weekly/monthly
         $stmt->bindParam(':end', $end);      // Will be NULL for weekly/monthly
@@ -149,5 +149,11 @@ class SalesTransactionModel
         }
 
         return $result;
+    }
+    public function getSalesByCashier()
+    {
+        $stmt = $this->conn->prepare("CALL GetSalesByCashier()");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

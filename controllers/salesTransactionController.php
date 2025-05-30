@@ -171,6 +171,12 @@ switch ($action) {
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;
+    case 'sales_by_cashier':
+        $data = $salesTransaction->getSalesByCashier();
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        exit;
+
 
     case 'profit_performance':
         $range = $_GET['range'] ?? 'monthly';

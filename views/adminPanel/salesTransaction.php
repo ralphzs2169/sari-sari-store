@@ -16,6 +16,14 @@
         <div class="tab-pane fade show active" id="sales-pane" role="tabpanel" aria-labelledby="sales-tab">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4><i class="fas fa-receipt text-success"></i> Sales Transactions</h4>
+                <div>
+                    <label for="transactionStatusFilter" class="form-label me-2 mb-0">Filter by Status:</label>
+                    <select id="transactionStatusFilter" class="form-select form-select-sm w-auto d-inline-block">
+                        <option value="">All</option>
+                        <option value="Active" selected>Active</option>
+                        <option value="Void">Void</option>
+                    </select>
+                </div>
             </div>
             <table id="salesTable" class="table table-hover table-striped">
                 <thead class="table-light">
@@ -37,7 +45,7 @@
                         $date = date('F j, Y | g:i A', strtotime($transaction['sale_date']));
                         $method = ucfirst($transaction['payment_method']);
                         $total = number_format($transaction['total_amount'], 2);
-                        $badgeClass = ($method === 'Cash') ? 'bg-success ' : 'bg-primary';
+                        $badgeClass = ($method === 'Cash') ? 'bg-success' : 'bg-primary';
                         $isVoided = (isset($transaction['status']) && strtolower($transaction['status']) === 'void');
                     ?>
                         <tr<?= $isVoided ? ' class="table-danger"' : '' ?>>
@@ -49,14 +57,14 @@
                             <td>
                                 <?php if ($isVoided): ?>
                                     <span class="badge bg-danger">Void</span>
+                                    <span class="d-none">Void</span>
                                 <?php else: ?>
                                     <span class="badge bg-success">Active</span>
+                                    <span class="d-none">Active</span>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <button
-                                    class="btn btn-sm btn-outline-info"
-                                    onclick="viewTransactionDetails(<?= $transaction['sale_id'] ?>)">
+                                <button class="btn btn-sm btn-outline-info" onclick="viewTransactionDetails(<?= $transaction['sale_id'] ?>)">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <?php if (!$isVoided): ?>
@@ -174,10 +182,93 @@
         color: #198754;
         font-weight: 500;
     }
+
+    #salesTable {
+        min-width: 950px;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #e9f7ef;
+    }
+    .dataTables_wrapper .dt-buttons {
+        margin-bottom: 0.5em;
+    }
+    .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 0.5em;
+    }
+    .dataTables_wrapper .dataTables_filter {
+        float: right;
+    }
+    .dataTables_wrapper .dataTables_length {
+        float: left;
+    }
+    @media (max-width: 1200px) {
+        #salesTable {
+            min-width: 800px;
+        }
+    }
 </style>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/sari-sari-store/assets/datatables/js/datatables.min.js"></script>
+<script src="/sari-sari-store/assets/datatables/js/dataTables.buttons.min.js"></script>
+<script src="/sari-sari-store/assets/datatables/js/jszip.min.js"></script>
+<script src="/sari-sari-store/assets/datatables/js/pdfmake.min.js"></script>
+<script src="/sari-sari-store/assets/datatables/js/vfs_fonts.js"></script>
+<script src="/sari-sari-store/assets/datatables/js/buttons.html5.min.js"></script>
+<script src="/sari-sari-store/assets/datatables/js/buttons.print.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.jQuery && $('#salesTable').length) {
+            var table;
+            if (!$.fn.DataTable.isDataTable('#salesTable')) {
+                table = $('#salesTable').DataTable({
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100],
+                    language: {
+                        search: '',
+                        searchPlaceholder: 'Search transactions...'
+                    },
+                    order: [
+                        [2, 'desc']
+                    ],
+                    dom: 'Bfltip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            className: 'btn btn-success btn-sm',
+                            text: '<i class="fas fa-file-excel"></i> Excel',
+                            exportOptions: { columns: ':visible' }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            className: 'btn btn-danger btn-sm',
+                            text: '<i class="fas fa-file-pdf"></i> PDF',
+                            exportOptions: { columns: ':visible' },
+                            orientation: 'landscape',
+                            pageSize: 'A4'
+                        },
+                        {
+                            extend: 'print',
+                            className: 'btn btn-secondary btn-sm',
+                            text: '<i class="fas fa-print"></i> Print',
+                            exportOptions: { columns: ':visible' }
+                        }
+                    ]
+                });
+            } else {
+                table = $('#salesTable').DataTable();
+            }
+            // Initial filter: show only 'Active' status
+            table.column(5).search('Active', true, false).draw();
+            // Filter dropdown event
+            $('#transactionStatusFilter').on('change', function() {
+                var val = $(this).val();
+                table.column(5).search(val, true, false).draw();
+            });
+        }
+    });
+</script>
 
 <script>
     // Group transactions by sale_id for easy lookup (each sale_id may have multiple items)
