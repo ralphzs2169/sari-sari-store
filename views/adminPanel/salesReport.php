@@ -49,19 +49,36 @@
                 </div>
             </div>
             <div class="col-lg-3 mb-3">
-                <div class="card p-3 shadow-sm h-100">
+                <div class="card p-3 shadow-sm h-100 category-payment-card">
                     <h6 class="mb-3 text-primary"><i class="fas fa-chart-pie"></i> Sales by Category</h6>
-                    <canvas id="salesByCategoryChart" height="180"></canvas>
+                    <canvas id="salesByCategoryChart" height="260"></canvas>
                 </div>
             </div>
             <div class="col-lg-3 mb-3">
-                <div class="card p-3 shadow-sm h-100">
+                <div class="card p-3 shadow-sm h-100 category-payment-card">
                     <h6 class="mb-3 text-info"><i class="fas fa-wallet"></i> Payment Method Breakdown</h6>
-                    <canvas id="paymentMethodChart" height="180"></canvas>
+                    <canvas id="paymentMethodChart" height="260"></canvas>
                 </div>
             </div>
         </div>
-        <!-- Grid Row 2: Voided Transactions, Low Stock Alerts, Recent Activity -->
+        <style>
+            /* Match background and spacing for category/payment cards, and align chart heights */
+            .category-payment-card {
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f3f6 100%);
+                min-height: 340px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+            }
+
+            #salesByCategoryChart,
+            #paymentMethodChart,
+            #salesTrendChart {
+                min-height: 260px !important;
+                max-height: 260px !important;
+            }
+        </style>
+        <!-- Grid Row 2: Voided Transactions, Low Stock Alerts, Sales by Cashier -->
         <div class="row mb-4">
             <div class="col-lg-4 mb-3">
                 <div class="card p-3 shadow-sm h-100">
@@ -106,16 +123,14 @@
             </div>
             <div class="col-lg-4 mb-3">
                 <div class="card p-3 shadow-sm h-100">
-                    <h6 class="mb-3 text-secondary"><i class="fas fa-history"></i> Recent Activity</h6>
-                    <ul class="list-group list-group-flush" style="max-height: 160px; overflow-y: auto;">
-                        <li class="list-group-item text-muted">No recent activity (sample)</li>
-                    </ul>
+                    <h6 class="mb-3 text-primary"><i class="fas fa-user-tie"></i> Sales by Cashier</h6>
+                    <canvas id="salesByCashierChart" height="220"></canvas>
                 </div>
             </div>
         </div>
-        <!-- Grid Row 3: Profit Margin by Product, Sales by Cashier -->
+        <!-- Grid Row 3: Profit Performance (full width) -->
         <div class="row mb-4">
-            <div class="col-lg-6 mb-3">
+            <div class="col-12 mb-3">
                 <div class="card p-3 shadow-sm h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="mb-0 text-success"><i class="fas fa-percent"></i> Profit Performance</h6>
@@ -123,38 +138,6 @@
                     </div>
                     <canvas id="profitMarginChart" height="220"></canvas>
                 </div>
-            </div>
-            <div class="col-lg-6 mb-3">
-                <div class="card p-3 shadow-sm h-100">
-                    <h6 class="mb-3 text-primary"><i class="fas fa-user-tie"></i> Sales by Cashier</h6>
-                    <canvas id="salesByCashierChart" height="220"></canvas>
-                </div>
-            </div>
-        </div>
-        <!-- Detailed Sales Table -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light fw-semibold">
-                <i class="fas fa-table"></i> Detailed Sales Table
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Date</th>
-                            <th>Cashier</th>
-                            <th>Product</th>
-                            <th>Qty</th>
-                            <th>Total</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="7" class="text-center text-muted">No data (sample layout)</td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
         <!-- Download/Export Buttons -->
