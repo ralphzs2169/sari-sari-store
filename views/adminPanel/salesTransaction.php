@@ -182,41 +182,11 @@
         color: #198754;
         font-weight: 500;
     }
-
-    #salesTable {
-        min-width: 950px;
-    }
-    .table-hover tbody tr:hover {
-        background-color: #e9f7ef;
-    }
-    .dataTables_wrapper .dt-buttons {
-        margin-bottom: 0.5em;
-    }
-    .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter {
-        margin-bottom: 0.5em;
-    }
-    .dataTables_wrapper .dataTables_filter {
-        float: right;
-    }
-    .dataTables_wrapper .dataTables_length {
-        float: left;
-    }
-    @media (max-width: 1200px) {
-        #salesTable {
-            min-width: 800px;
-        }
-    }
 </style>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="/sari-sari-store/assets/datatables/js/datatables.min.js"></script>
-<script src="/sari-sari-store/assets/datatables/js/dataTables.buttons.min.js"></script>
-<script src="/sari-sari-store/assets/datatables/js/jszip.min.js"></script>
-<script src="/sari-sari-store/assets/datatables/js/pdfmake.min.js"></script>
-<script src="/sari-sari-store/assets/datatables/js/vfs_fonts.js"></script>
-<script src="/sari-sari-store/assets/datatables/js/buttons.html5.min.js"></script>
-<script src="/sari-sari-store/assets/datatables/js/buttons.print.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         if (window.jQuery && $('#salesTable').length) {
@@ -231,29 +201,6 @@
                     },
                     order: [
                         [2, 'desc']
-                    ],
-                    dom: 'Bfltip',
-                    buttons: [
-                        {
-                            extend: 'excelHtml5',
-                            className: 'btn btn-success btn-sm',
-                            text: '<i class="fas fa-file-excel"></i> Excel',
-                            exportOptions: { columns: ':visible' }
-                        },
-                        {
-                            extend: 'pdfHtml5',
-                            className: 'btn btn-danger btn-sm',
-                            text: '<i class="fas fa-file-pdf"></i> PDF',
-                            exportOptions: { columns: ':visible' },
-                            orientation: 'landscape',
-                            pageSize: 'A4'
-                        },
-                        {
-                            extend: 'print',
-                            className: 'btn btn-secondary btn-sm',
-                            text: '<i class="fas fa-print"></i> Print',
-                            exportOptions: { columns: ':visible' }
-                        }
                     ]
                 });
             } else {

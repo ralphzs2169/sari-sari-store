@@ -171,32 +171,13 @@ switch ($action) {
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;
-        
+
     case 'sales_by_cashier':
         $data = $salesTransaction->getSalesByCashier();
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;
 
-    case 'voided_transactions':
-        $stmt = $salesTransaction->conn->prepare("SELECT s.id as sale_id, s.sale_date, a.name as cashier, s.payment_method FROM sales s LEFT JOIN admin a ON s.admin_id = a.id WHERE s.status = 'voided' ORDER BY s.sale_date DESC");
-        $stmt->execute();
-        $voided = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        header('Content-Type: application/json');
-        echo json_encode($voided);
-        exit;
-
-    case 'view_transaction':
-        $sale_id = intval($_GET['sale_id'] ?? 0);
-        if ($sale_id > 0) {
-            // Render a partial view for the modal body (replicate salesTransaction section)
-            ob_start();
-            include __DIR__ . '/../views/adminPanel/transactionDetails.php';
-            $html = ob_get_clean();
-            echo $html;
-            exit;
-        }
-        exit;
 
     case 'profit_performance':
         $range = $_GET['range'] ?? 'monthly';
@@ -206,6 +187,98 @@ switch ($action) {
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;
+
+    case 'voided_transactions':
+        // Use getAll() and filter for void/voided, provide username as cashier
+        $voided = $salesTransaction->getAll();
+        $result = [];
+        foreach ($voided as $tran) {
+            if (isset($tran['status']) && (strtolower($tran['status']) === 'void' || strtolower($tran['status']) === 'voided')) {
+                $result[] = [
+                    'sale_id' => $tran['sale_id'] ?? $tran['id'],
+                    'sale_date' => $tran['sale_date'],
+                    'cashier' => $tran['username'] ?? '-',
+                ];
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit;
+
+    case 'view_transaction':
+        $sale_id = intval($_GET['sale_id'] ?? 0);
+        if ($sale_id > 0) {
+            $sale = $salesTransaction->getById($sale_id);
+            $saleItems = $saleItemModel->getBySaleId($sale_id);
+            // Fetch product details for each item
+            foreach ($saleItems as &$item) {
+                $product = $productModel->getById($item['product_id']);
+                $item['product_name'] = $product['name'] ?? '';
+                $item['image_path'] = $product['image_path'] ?? '';
+                $item['price'] = $item['price'];
+                $item['subtotal'] = $item['price'] * $item['quantity'];
+            }
+            unset($item);
+            $totalQty = array_sum(array_column($saleItems, 'quantity'));
+            $method = $sale['payment_method'] ?? '';
+            $badgeClass = ($method === 'cash') ? 'bg-success' : (($method === 'gcash') ? 'bg-primary' : 'bg-secondary');
+            $methodLabel = ucfirst($method);
+            $isVoided = isset($sale['status']) && strtolower($sale['status']) === 'void';
+            $voidBadge = $isVoided ? '<span class="badge bg-danger">VOID</span>' : '';
+            ob_start();
+?>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100 bg-light">
+                        <div class="mb-2"><strong>Sale No.:</strong> <?= htmlspecialchars($sale['sale_id']) ?> <?= $voidBadge ?></div>
+                        <div class="mb-2"><strong>Cashier:</strong> <?= htmlspecialchars($sale['username'] ?? '-') ?></div>
+                        <div><strong>Date:</strong> <?= date('F j, Y | g:i A', strtotime($sale['sale_date'])) ?></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100 bg-light">
+                        <div class="mb-2"><strong>Total Quantity:</strong> <?= $totalQty ?></div>
+                        <div class="mb-2"><strong>Total Payment:</strong> ₱<?= number_format($sale['total_amount'], 2) ?></div>
+                        <div><strong>Payment Method:</strong> <span class="badge <?= $badgeClass ?>"><?= $methodLabel ?></span></div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <h5>Items:</h5>
+            <div class="table-responsive" style="overflow-x:auto;">
+                <table class="table table-bordered mb-0" style="table-layout:fixed;">
+                    <thead>
+                        <tr>
+                            <th style="width:70px;">Image</th>
+                            <th style="min-width:120px;max-width:200px;">Product</th>
+                            <th style="width:60px;">Qty</th>
+                            <th style="width:90px;">Price</th>
+                            <th style="width:100px;">Subtotal</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div style="max-height:270px; overflow-y:auto;">
+                    <table class="table table-bordered mb-0" style="table-layout:fixed;">
+                        <tbody>
+                            <?php foreach ($saleItems as $item): ?>
+                                <tr>
+                                    <td style="width:70px;"><img src="<?= htmlspecialchars($item['image_path']) ?>" style="width:60px;height:60px;object-fit:cover;" alt="<?= htmlspecialchars($item['product_name']) ?>"></td>
+                                    <td style="word-break:break-word;white-space:normal;min-width:120px;max-width:200px;"><?= htmlspecialchars($item['product_name']) ?></td>
+                                    <td style="width:60px;"><?= $item['quantity'] ?></td>
+                                    <td style="width:90px;">₱<?= number_format($item['price'], 2) ?></td>
+                                    <td style="width:100px;">₱<?= number_format($item['subtotal'], 2) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+<?php
+            $html = ob_get_clean();
+            echo $html;
+            exit;
+        }
+        break;
 
     default:
         // Optionally, list all sales or redirect

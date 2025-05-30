@@ -66,28 +66,41 @@
             <div class="col-lg-4 mb-3">
                 <div class="card p-3 shadow-sm h-100">
                     <h6 class="mb-3 text-danger"><i class="fas fa-ban"></i> Voided Transactions</h6>
-                    <canvas id="voidedTransactionsChart" height="180"></canvas>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-sm mb-0" style="min-width:100%; table-layout:fixed;">
+                            <thead class="table-light" style="position:sticky;top:0;z-index:2;background:#fff;">
+                                <tr>
+                                    <th style="width:60%;">Date</th>
+                                    <th style="width:25%;">Cashier</th>
+                                    <th style="width:15%;">View</th>
+                                </tr>
+                            </thead>
+                            <tbody id="voidedTransactionsTbody">
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-4 mb-3">
                 <div class="card p-3 shadow-sm h-100">
                     <h6 class="mb-3 text-warning"><i class="fas fa-exclamation-triangle"></i> Low Stock Alerts</h6>
                     <div style="max-height: 200px; overflow-y: auto;">
-                        <div style="overflow-x: auto;">
-                            <table class="table table-sm mb-0" style="min-width: 100%; table-layout: fixed;">
-                                <thead class="table-light" style="position: sticky; top: 0; z-index: 2; background: #fff;">
-                                    <tr>
-                                        <th style="width: 78%;">Product Name</th>
-                                        <th style="width: 22%;">Qty</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="lowStockTbody">
-                                    <tr>
-                                        <td colspan="2" class="text-center text-muted">Loading...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <table class="table table-sm mb-0" style="min-width:100%; table-layout:fixed;">
+                            <thead class="table-light" style="position:sticky;top:0;z-index:2;background:#fff;">
+                                <tr>
+                                    <th style="width:85%;">Product Name</th>
+                                    <th style="width:15%;">Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lowStockTbody">
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -572,6 +585,59 @@ foreach ($transactions as $t) {
         }
         loadLowStockAlerts();
 
+        // --- Voided Transactions Table Loader ---
+        async function loadVoidedTransactions() {
+            const tbody = document.getElementById('voidedTransactionsTbody');
+            tbody.innerHTML = `<tr><td colspan='3' class='text-center text-muted'>Loading...</td></tr>`;
+            try {
+                const response = await fetch('/sari-sari-store/controllers/salesTransactionController.php?action=voided_transactions');
+                const data = await response.json();
+                if (!data.length) {
+                    tbody.innerHTML = `<tr><td colspan='3' class='text-center text-muted'>No voided transactions</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = data.map(tran => {
+                    const date = new Date(tran.sale_date);
+                    const formatted = date.toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                    // Format: May 2, 2023 | 3:43 PM
+                    const dateStr = `${date.toLocaleString('en-US', { month: 'short' })} ${date.getDate()}, ${date.getFullYear()} | ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+                    return `<tr>
+                        <td>${dateStr}</td>
+                        <td>${tran.cashier || '-'}</td>
+                        <td class='text-center'>
+                            <button class='btn btn-link p-0 view-voided-transaction' data-id='${tran.sale_id}' title='View'>
+                                <i class='fas fa-eye text-primary'></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan='3' class='text-center text-danger'>Error loading data</td></tr>`;
+            }
+        }
+        loadVoidedTransactions();
+        // Delegate click for view buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.view-voided-transaction')) {
+                const btn = e.target.closest('.view-voided-transaction');
+                const saleId = btn.getAttribute('data-id');
+                fetch(`/sari-sari-store/controllers/salesTransactionController.php?action=view_transaction&sale_id=${saleId}`)
+                    .then(res => res.text())
+                    .then(html => {
+                        document.getElementById('viewTransactionModalBody').innerHTML = html;
+                        const modal = new bootstrap.Modal(document.getElementById('viewTransactionModal'));
+                        modal.show();
+                    });
+            }
+        });
+
     });
 </script>
 <style>
@@ -581,3 +647,18 @@ foreach ($transactions as $t) {
         max-width: 100%;
     }
 </style>
+
+<!-- View Transaction Modal (reuse from salesTransaction) -->
+<div class="modal fade" id="viewTransactionModal" tabindex="-1" aria-labelledby="viewTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewTransactionModalLabel">Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="viewTransactionModalBody">
+                <!-- Transaction details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
