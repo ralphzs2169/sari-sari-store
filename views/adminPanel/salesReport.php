@@ -72,9 +72,23 @@
             <div class="col-lg-4 mb-3">
                 <div class="card p-3 shadow-sm h-100">
                     <h6 class="mb-3 text-warning"><i class="fas fa-exclamation-triangle"></i> Low Stock Alerts</h6>
-                    <ul class="list-group list-group-flush" style="max-height: 160px; overflow-y: auto;">
-                        <li class="list-group-item text-muted">No low stock products (sample)</li>
-                    </ul>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        <div style="overflow-x: auto;">
+                            <table class="table table-sm mb-0" style="min-width: 100%; table-layout: fixed;">
+                                <thead class="table-light" style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr>
+                                        <th style="width: 78%;">Product Name</th>
+                                        <th style="width: 22%;">Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lowStockTbody">
+                                    <tr>
+                                        <td colspan="2" class="text-center text-muted">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-4 mb-3">
@@ -535,5 +549,35 @@ foreach ($transactions as $t) {
             }
         }
 
+        // --- Low Stock Alerts Table Loader ---
+        async function loadLowStockAlerts() {
+            const tbody = document.getElementById('lowStockTbody');
+            tbody.innerHTML = `<tr><td colspan='2' class='text-center text-muted'>Loading...</td></tr>`;
+            try {
+                const response = await fetch('/sari-sari-store/controllers/productController.php?action=low_stock');
+                const data = await response.json();
+                if (!data.length) {
+                    tbody.innerHTML = `<tr><td colspan='2' class='text-center text-muted'>No low stock products</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = data.map(prod =>
+                    `<tr>
+                        <td class='low-stock-product-name'>${prod.name}</td>
+                        <td>${prod.quantity_in_stock}</td>
+                    </tr>`
+                ).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan='2' class='text-center text-danger'>Error loading data</td></tr>`;
+            }
+        }
+        loadLowStockAlerts();
+
     });
 </script>
+<style>
+    .low-stock-product-name {
+        word-break: break-word;
+        white-space: normal;
+        max-width: 100%;
+    }
+</style>

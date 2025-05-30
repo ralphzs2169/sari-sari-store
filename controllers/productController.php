@@ -135,6 +135,13 @@ switch ($action) {
         header("Location: /sari-sari-store/views/adminPanel/index.php?section=products");
         exit;
 
+    case 'low_stock':
+        // Return products with low stock (e.g., quantity_in_stock <= 10)
+        $lowStock = $product->getLowStockProducts();
+        header('Content-Type: application/json');
+        echo json_encode($lowStock);
+        exit;
+
     default:
         // Optionally redirect or show error if action is unknown
         header("Location: /sari-sari-store/views/adminPanel/index.php?section=products");

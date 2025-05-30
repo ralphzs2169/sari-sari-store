@@ -227,4 +227,12 @@ class ProductModel
             return false;
         }
     }
+
+    // Returns products with low stock (e.g., quantity_in_stock <= 5)
+    public function getLowStockProducts()
+    {
+        $stmt = $this->conn->prepare("SELECT name, quantity_in_stock FROM products WHERE quantity_in_stock > 0 AND quantity_in_stock <= 5 ORDER BY quantity_in_stock ASC, name ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

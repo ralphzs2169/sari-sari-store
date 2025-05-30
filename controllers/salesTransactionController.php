@@ -171,12 +171,32 @@ switch ($action) {
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;
+        
     case 'sales_by_cashier':
         $data = $salesTransaction->getSalesByCashier();
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;
 
+    case 'voided_transactions':
+        $stmt = $salesTransaction->conn->prepare("SELECT s.id as sale_id, s.sale_date, a.name as cashier, s.payment_method FROM sales s LEFT JOIN admin a ON s.admin_id = a.id WHERE s.status = 'voided' ORDER BY s.sale_date DESC");
+        $stmt->execute();
+        $voided = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($voided);
+        exit;
+
+    case 'view_transaction':
+        $sale_id = intval($_GET['sale_id'] ?? 0);
+        if ($sale_id > 0) {
+            // Render a partial view for the modal body (replicate salesTransaction section)
+            ob_start();
+            include __DIR__ . '/../views/adminPanel/transactionDetails.php';
+            $html = ob_get_clean();
+            echo $html;
+            exit;
+        }
+        exit;
 
     case 'profit_performance':
         $range = $_GET['range'] ?? 'monthly';
