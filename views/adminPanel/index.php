@@ -35,6 +35,7 @@ $transactions = $salesModel->getAll();
 
 $topProducts = $salesModel->getTopProducts();
 $totalSales = $salesModel->getTodaySalesTotal();
+$totalProfit = $salesModel->getTotalProfit();
 $todayTransactionCount = $salesModel->countTodayTransactions();
 
 

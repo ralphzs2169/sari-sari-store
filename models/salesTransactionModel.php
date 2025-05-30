@@ -40,6 +40,15 @@ class SalesTransactionModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getTotalProfit()
+    {
+        $stmt = $this->conn->prepare("CALL GetTotalProfit()");
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['total_profit'] : 0;
+    }
+
+
     public function getByAdmin($admin_id)
     {
         $stmt = $this->conn->prepare("CALL GetTransactionsByAdmin(:admin_id)");

@@ -1,4 +1,32 @@
 <?php
+// --- PHP: Prepare summary card variables before HTML ---
+$totalSales = 0;
+$transactionCount = 0;
+$avgTransaction = 0;
+if (isset($transactions) && is_array($transactions) && count($transactions) > 0) {
+    $totalSales = array_sum(array_column($transactions, 'total_amount'));
+    $transactionCount = count($transactions);
+    $avgTransaction = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+}
+
+// --- PHP: Prepare monthly sales data for the last 12 months ---
+$monthlySales = [];
+$monthLabels = [];
+$now = new DateTime('first day of this month');
+for ($i = 11; $i >= 0; $i--) {
+    $month = (clone $now)->modify("-$i months");
+    $key = $month->format('Y-m');
+    $monthLabels[] = $month->format('M Y');
+    $monthlySales[$key] = 0;
+}
+foreach ($transactions as $t) {
+    $monthKey = date('Y-m', strtotime($t['sale_date']));
+    if (isset($monthlySales[$monthKey])) {
+        $monthlySales[$monthKey] += floatval($t['total_amount']);
+    }
+}
+?>
+<?php
 // Sales Report Section - Enhanced Grid Layout
 ?>
 
@@ -11,7 +39,7 @@
                 <div class="card shadow-sm border-success">
                     <div class="card-body text-center">
                         <h6 class="card-title text-success">Total Sales</h6>
-                        <h4 class="fw-bold">₱0.00</h4>
+                        <h4 class="fw-bold">₱<?= number_format($totalSales, 2) ?></h4>
                     </div>
                 </div>
             </div>
@@ -19,7 +47,7 @@
                 <div class="card shadow-sm border-primary">
                     <div class="card-body text-center">
                         <h6 class="card-title text-primary">Transactions</h6>
-                        <h4 class="fw-bold">0</h4>
+                        <h4 class="fw-bold"><?= number_format($transactionCount) ?></h4>
                     </div>
                 </div>
             </div>
@@ -27,15 +55,15 @@
                 <div class="card shadow-sm border-info">
                     <div class="card-body text-center">
                         <h6 class="card-title text-info">Avg. Transaction</h6>
-                        <h4 class="fw-bold">₱0.00</h4>
+                        <h4 class="fw-bold">₱<?= number_format($avgTransaction, 2) ?></h4>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
                 <div class="card shadow-sm border-warning">
                     <div class="card-body text-center">
-                        <h6 class="card-title text-warning">Best Day</h6>
-                        <h4 class="fw-bold">-</h4>
+                        <h6 class="card-title text-warning">Total Profit</h6>
+                        <h4 class="fw-bold">₱<?= number_format($totalProfit, 2) ?></h4>
                     </div>
                 </div>
             </div>
@@ -78,6 +106,18 @@
                 max-height: 260px !important;
             }
         </style>
+        <!-- Grid Row 3: Profit Performance (full width) -->
+        <div class="row mb-4">
+            <div class="col-12 mb-3">
+                <div class="card p-3 shadow-sm h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0 text-success"><i class="fas fa-percent"></i> Profit Performance</h6>
+                        <span id="profitPerformanceTotal" class="fw-bold text-success" style="font-size:1.1em"></span>
+                    </div>
+                    <canvas id="profitMarginChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
         <!-- Grid Row 2: Voided Transactions, Low Stock Alerts, Sales by Cashier -->
         <div class="row mb-4">
             <div class="col-lg-4 mb-3">
@@ -128,18 +168,7 @@
                 </div>
             </div>
         </div>
-        <!-- Grid Row 3: Profit Performance (full width) -->
-        <div class="row mb-4">
-            <div class="col-12 mb-3">
-                <div class="card p-3 shadow-sm h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="mb-0 text-success"><i class="fas fa-percent"></i> Profit Performance</h6>
-                        <span id="profitPerformanceTotal" class="fw-bold text-success" style="font-size:1.1em"></span>
-                    </div>
-                    <canvas id="profitMarginChart" height="220"></canvas>
-                </div>
-            </div>
-        </div>
+
         <!-- Download/Export Buttons -->
         <div class="mb-4">
             <button class="btn btn-outline-success me-2"><i class="fas fa-file-excel"></i> Export to Excel</button>
@@ -149,24 +178,6 @@
     </div>
 </div>
 
-<?php
-// --- PHP: Prepare monthly sales data for the last 12 months ---
-$monthlySales = [];
-$monthLabels = [];
-$now = new DateTime('first day of this month');
-for ($i = 11; $i >= 0; $i--) {
-    $month = (clone $now)->modify("-$i months");
-    $key = $month->format('Y-m');
-    $monthLabels[] = $month->format('M Y');
-    $monthlySales[$key] = 0;
-}
-foreach ($transactions as $t) {
-    $monthKey = date('Y-m', strtotime($t['sale_date']));
-    if (isset($monthlySales[$monthKey])) {
-        $monthlySales[$monthKey] += floatval($t['total_amount']);
-    }
-}
-?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
